@@ -3,7 +3,7 @@ function AK_prepareNDARsubmission( submission_dir, NDAR_subinfo_xlsfile )
 %which prepare different parts of the NDAR submission.
 %   INPUT:
 %       submission_dir: (string) should be the full path name of a folder where the submission materials are to be saved
-%       NDAR_subinfo_xlsfile (string) should be the full path name of a .xls file containing the columns: SUB ID, GUID, Age (months), Gender
+%       NDAR_subinfo_xlsfile (string) should be the full path name of a .xls file containing the columns: SUB ID, GUID, Date of Birth, Gender
 %           this information can be found on REDCap under the report
 %           labeled Subinfo_NDAR for the GABA project (this information is
 %           typically added to REDCap by the Bernier Lab coordinators)
