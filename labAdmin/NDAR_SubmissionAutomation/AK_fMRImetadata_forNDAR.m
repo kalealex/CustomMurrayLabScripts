@@ -80,6 +80,18 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                 NDARdata{NDARrow,14} = PAR_list(iPR).name; % store PAR filename (data file2)
                                 NDARdata{NDARrow,15} = 'Associated PAR file'; % store data file2 type
                                 NDARdata{NDARrow,16} = 'MRI'; % store image modality
+                                %%% SCANNER SPECS ADDED APRIL, 2017
+                                NDARdata{NDARrow,17} = 'Philips'; % store scanner manufacturer
+                                NDARdata{NDARrow,18} = 'Achieva'; % store scanner type
+                                if datetime(PAR_list(iPR).date) < datetime('9/15/2015') % software changed from 3.2.3 to 5.1.7 on 9/15/2015
+                                    NDARdata{NDARrow,19} = '3.2.3'; % store scanner software version
+                                else
+                                    NDARdata{NDARrow,19} = '5.1.7'; % store scanner software version
+                                end
+                                NDARdata{NDARrow,20} = '3T'; % store magnetic field strength
+                                NDARdata{NDARrow,26} = 'head first supine'; % store patient position
+                                NDARdata{NDARrow,27} = 'monochrome 2'; % store description of photometric interpretation
+                                %%% 
                                 NDARdata{NDARrow,28} = '32 channel headcoil'; % store receive coil
                                 NDARdata{NDARrow,29} = 'headcoil'; % store transmit coil
                                 NDARdata{NDARrow,30} = 'No'; % store transformation performed
@@ -90,10 +102,60 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                 if iScan == 1 % if MPRAGE
                                     % store no experiment id
                                     NDARdata{NDARrow,11} = 'MR structural (MPRAGE)'; % store scan type
+                                    %%% SCAN SPECS ADDED APRIL, 2017
+                                    NDARdata{NDARrow,21} = 0.0076; % store repetition time (seconds)
+                                    NDARdata{NDARrow,22} = 0.0035; % store echo time (seconds)
+                                    NDARdata{NDARrow,23} = '7 degrees'; % store flip angle
+                                    NDARdata{NDARrow,24} = '256 * 256 * 176 voxels'; % store acquisition matrix
+                                    NDARdata{NDARrow,25} = '256 * 256 * 176 millimeters'; % store field of view
+                                    %%%
+                                    %%% INFORMATION ON IMAGE DIMENSIONS ADDED JAN, 2017
+                                    NDARdata{NDARrow,33} = 3; % store number of image dimensions
+                                    NDARdata{NDARrow,34} = 256; % store extent of image dimension 1
+                                    NDARdata{NDARrow,35} = 256; % store extent of image dimension 2
+                                    NDARdata{NDARrow,36} = 176; % store extent of image dimension 3
+                                    % store no extent of image dimension 4
+                                    % store no type for extent of image dimension 4 ('Time')
+                                    NDARdata{NDARrow,41} = 'Millimeters'; % store units of image dimension 1
+                                    NDARdata{NDARrow,42} = 'Millimeters'; % store units of image dimension 2
+                                    NDARdata{NDARrow,43} = 'Millimeters'; % store units of image dimension 3
+                                    % store no units of image dimension 4 ('Seconds')
+                                    NDARdata{NDARrow,46} = 1; % store resolution of image dimension 1
+                                    NDARdata{NDARrow,47} = 1; % store resolution of image dimension 2
+                                    NDARdata{NDARrow,48} = 1; % store resolution of image dimension 3
+                                    % store no resolution of image dimension 4
+                                    NDARdata{NDARrow,51} = 1; % store image slice thickness
+                                    NDARdata{NDARrow,52} = 'Sagittal'; % store image orientation
+                                    %%%
                                     % store no study
                                 else
                                     NDARdata{NDARrow,10} = 422; % store experiment id
                                     NDARdata{NDARrow,11} = 'MR structural (T2)'; % store scan type
+                                    %%% SCAN SPECS ADDED APRIL, 2017
+                                    NDARdata{NDARrow,21} = 2; % store repetition time (seconds)
+                                    NDARdata{NDARrow,22} = 0.025; % store echo time (seconds)
+                                    NDARdata{NDARrow,23} = '79 degrees'; % store flip angle
+                                    NDARdata{NDARrow,24} = '80 * 80 * 30 voxels'; % store acquisition matrix
+                                    NDARdata{NDARrow,25} = '240 * 240 * 105 millimeters'; % store field of view
+                                    %%%
+                                    %%% INFORMATION ON IMAGE DIMENSIONS ADDED JAN, 2017
+                                    NDARdata{NDARrow,33} = 4; % store number of image dimensions
+                                    NDARdata{NDARrow,34} = 80; % store extent of image dimension 1
+                                    NDARdata{NDARrow,35} = 80; % store extent of image dimension 2
+                                    NDARdata{NDARrow,36} = 30; % store extent of image dimension 3
+                                    NDARdata{NDARrow,37} = 170; % store extent of image dimension 4
+                                    NDARdata{NDARrow,38} = 'Time';% store type for extent of image dimension 4
+                                    NDARdata{NDARrow,41} = 'Millimeters'; % store units of image dimension 1
+                                    NDARdata{NDARrow,42} = 'Millimeters'; % store units of image dimension 2
+                                    NDARdata{NDARrow,43} = 'Millimeters'; % store units of image dimension 3
+                                    NDARdata{NDARrow,44} = 'Seconds';% store units of image dimension 4
+                                    NDARdata{NDARrow,46} = 3; % store resolution of image dimension 1
+                                    NDARdata{NDARrow,47} = 3; % store resolution of image dimension 2
+                                    NDARdata{NDARrow,48} = 3.5; % store resolution of image dimension 3
+                                    NDARdata{NDARrow,49} = 2;% store resolution of image dimension 4
+                                    NDARdata{NDARrow,51} = 3; % store image slice thickness
+                                    NDARdata{NDARrow,52} = 'Axial'; % store image orientation
+                                    %%%
                                     NDARdata{NDARrow,68} = 'ftap'; % store study
                                 end
 
@@ -124,6 +186,18 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                 NDARdata{NDARrow,14} = PAR_list(iPR).name; % store PAR filename (data file2)
                                 NDARdata{NDARrow,15} = 'Associated PAR file'; % store data file2 type
                                 NDARdata{NDARrow,16} = 'MRI'; % store image modality
+                                %%% SCANNER SPECS ADDED APRIL, 2017
+                                NDARdata{NDARrow,17} = 'Philips'; % store scanner manufacturer
+                                NDARdata{NDARrow,18} = 'Achieva'; % store scanner type
+                                if datetime(PAR_list(iPR).date) < datetime('9/15/2015') % software changed from 3.2.3 to 5.1.7 on 9/15/2015
+                                    NDARdata{NDARrow,19} = '3.2.3'; % store scanner software version
+                                else
+                                    NDARdata{NDARrow,19} = '5.1.7'; % store scanner software version
+                                end
+                                NDARdata{NDARrow,20} = '3T'; % store magnetic field strength
+                                NDARdata{NDARrow,26} = 'head first supine'; % store patient position
+                                NDARdata{NDARrow,27} = 'monochrome 2'; % store description of photometric interpretation
+                                %%% 
                                 NDARdata{NDARrow,28} = '32 channel headcoil'; % store receive coil
                                 NDARdata{NDARrow,29} = 'headcoil'; % store transmit coil
                                 NDARdata{NDARrow,30} = 'No'; % store transformation performed
@@ -135,6 +209,13 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                     if iScan == 1 % if MPRAGE
                                         % store no experiment id
                                         NDARdata{NDARrow,11} = 'MR structural (MPRAGE)'; % store scan type
+                                        %%% SCAN SPECS ADDED APRIL, 2017
+                                        NDARdata{NDARrow,21} = 0.0076; % store repetition time (seconds)
+                                        NDARdata{NDARrow,22} = 0.0035; % store echo time (seconds)
+                                        NDARdata{NDARrow,23} = '7 degrees'; % store flip angle
+                                        NDARdata{NDARrow,24} = '256 * 256 * 176 voxels'; % store acquisition matrix
+                                        NDARdata{NDARrow,25} = '256 * 256 * 176 millimeters'; % store field of view
+                                        %%%
                                         %%% INFORMATION ON IMAGE DIMENSIONS ADDED JAN, 2017
                                         NDARdata{NDARrow,33} = 3; % store number of image dimensions
                                         NDARdata{NDARrow,34} = 256; % store extent of image dimension 1
@@ -157,6 +238,13 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                     else
                                         NDARdata{NDARrow,10} = 422; % store experiment id
                                         NDARdata{NDARrow,11} = 'MR structural (T2)'; % store scan type
+                                        %%% SCAN SPECS ADDED APRIL, 2017
+                                        NDARdata{NDARrow,21} = 2; % store repetition time (seconds)
+                                        NDARdata{NDARrow,22} = 0.025; % store echo time (seconds)
+                                        NDARdata{NDARrow,23} = '79 degrees'; % store flip angle
+                                        NDARdata{NDARrow,24} = '80 * 80 * 30 voxels'; % store acquisition matrix
+                                        NDARdata{NDARrow,25} = '240 * 240 * 105 millimeters'; % store field of view
+                                        %%%
                                         %%% INFORMATION ON IMAGE DIMENSIONS ADDED JAN, 2017
                                         NDARdata{NDARrow,33} = 4; % store number of image dimensions
                                         NDARdata{NDARrow,34} = 80; % store extent of image dimension 1
@@ -181,6 +269,13 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                     if iScan == 1 % if MPRAGE
                                         % store no experiment id
                                         NDARdata{NDARrow,11} = 'MR structural (MPRAGE)'; % store scan type
+                                        %%% SCAN SPECS ADDED APRIL, 2017
+                                        NDARdata{NDARrow,21} = 0.0076; % store repetition time (seconds)
+                                        NDARdata{NDARrow,22} = 0.0035; % store echo time (seconds)
+                                        NDARdata{NDARrow,23} = '7 degrees'; % store flip angle
+                                        NDARdata{NDARrow,24} = '256 * 256 * 176 voxels'; % store acquisition matrix
+                                        NDARdata{NDARrow,25} = '256 * 256 * 176 millimeters'; % store field of view
+                                        %%%
                                         %%% INFORMATION ON IMAGE DIMENSIONS ADDED JAN, 2017
                                         NDARdata{NDARrow,33} = 3; % store number of image dimensions
                                         NDARdata{NDARrow,34} = 256; % store extent of image dimension 1
@@ -229,6 +324,13 @@ for iS = 1:length(subj_dirs); % cycle through subjects
                                             end
                                         end
                                         NDARdata{NDARrow,11} = 'MR structural (T2)'; % store scan type
+                                        %%% SCAN SPECS ADDED APRIL, 2017
+                                        NDARdata{NDARrow,21} = 2; % store repetition time (seconds)
+                                        NDARdata{NDARrow,22} = 0.025; % store echo time (seconds)
+                                        NDARdata{NDARrow,23} = '79 degrees'; % store flip angle
+                                        NDARdata{NDARrow,24} = '80 * 80 * 30 voxels'; % store acquisition matrix
+                                        NDARdata{NDARrow,25} = '240 * 240 * 105 millimeters'; % store field of view
+                                        %%%
                                         %%% INFORMATION ON IMAGE DIMENSIONS ADDED JAN, 2017
                                         NDARdata{NDARrow,33} = 4; % store number of image dimensions
                                         NDARdata{NDARrow,34} = 80; % store extent of image dimension 1
