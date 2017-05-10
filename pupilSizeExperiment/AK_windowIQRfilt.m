@@ -1,6 +1,24 @@
 function [ filteredArray, outlierIdx ] = AK_windowIQRfilt(dataArray, windowWidth, nIQRsOutlierCriterion )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%AK_windowIQRfilt is a custom outlier removal algorithm that removes and
+%flags outliers in time series data, where an outlier is considered to be
+%any value a given number * the IQR outside of the IQR, within a sliding
+%temporal window.
+%   INPUT:
+%       dataArray: an array of time series data to be filtered
+%       windowWidth: the number of elements in the array which represent
+%           the width of a sliding temporal window; the data are filtered
+%           based on the IQR of the subset of data within this window, so
+%           the window should be broad enough not to filter out global
+%           patterns in the data that represent signal
+%       nIQRsOutlierCriterion: a criterion for the number of IQRs above or
+%           below the 3rd and 1st quartiles, respectively, that a value at
+%           the center of the sliding temporal window has to attain to be
+%           considered an outlier in the dataset
+%   OUTPUT:
+%       filteredData: a filtered version of the dataArray where outliers
+%           are replaced with nans
+%       outlierIdx: a logical array indexing into dataArray, where 1=>
+%           outlier and 0 => non-outlier
 
 % setup output
 filteredArray = dataArray;
