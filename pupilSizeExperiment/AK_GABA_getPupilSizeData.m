@@ -1,5 +1,4 @@
-function [ trialPupilSize, trialBaseline, blockPupilSize, blockBaseline, avgPupilSizeAcrossBlocks, power ] = AK_GABA_getPupilSizeData( ascFilename,...
-        directory, removeBlinks, avgFunction, filter, plotWhat )
+function [ rawPupilSizePerTrial, plotData ] = AK_GABA_getPupilSizeData( ascFilename, directory, removeBlinks, avgFunction, filter, plotWhat )
 %AK_GABA_getPupilSizeData retrieves and formats data from the GABAinASD
 %Pupil Size experiment, in which a participant fixates while a disk
 %oscillates from black to white with a period of two seconds. The full
@@ -25,7 +24,6 @@ function [ trialPupilSize, trialBaseline, blockPupilSize, blockBaseline, avgPupi
 %           @nanmedian are recommended since they filter out nans (blinks)
 %       filter[optional]: choose a filter to apply to each block of data
 %           from among the following options (copy the string exactly):
-= % need to finish describing these filters
 %               '': no filter; just the raw data with block-wise and
 %                   trial-wise baselines subtracted
 %               'Hampel': a common outlier-removing filter for pupil size
@@ -78,18 +76,49 @@ function [ trialPupilSize, trialBaseline, blockPupilSize, blockBaseline, avgPupi
 %                   superimposed as a thick blue line; verticle dotted
 %                   lines mark stimulus onsets, where the white disc onsets
 %                   are marked by '-.' and the black disc onset is marked
-%                   by ':'; any part of the average trace which is impacted
-%                   by outlier removing ('Hampel' or 'IQR') filters will be
-%                   plotted in yellow
+%                   by ':'; the mean (baseline) of each block is subtracted
+%                   from the trace of pupil size data from each block prior
+%                   to plotting and averaging; any part of the average
+%                   trace which is impacted by outlier removing ('Hampel'
+%                   or 'IQR') filters will be plotted in yellow
 %   OUTPUT:
-= % still need to decide whether to return data with baselines already subtracted
-%       trialPupilSize:
-%       trialBaseline:
-%       blockPupilSize: 
-%       blockBaseline:
-%       avgPupilSizeAcrossBlocks:
-%       power:
-
+%       rawPupilSizePerTrial: raw data extracted from the .asc file, parsed
+%           into a matrix of trials * milliseconds since stimulus onset,
+%           with each row nan padded at the end
+%       plotData: a structure containing the pupil data as it is processed
+%           inside of this function for the purpose of plotting
+%               pupilTracePerTrial: pupil data for each trial with two
+%                   baselines subtracted: first a baseline per block (the
+%                   average of each block, using avgFunction which defaults
+%                   to nanmedian) is subtracted, then a baseline per trial
+%                   (the pupil size measured 250 ms prior to the onset of
+%                   the white ring stimulus, which marks the start of each
+%                   trial) is subtracted; this is based on the prior work
+%                   that Scott and Maria did looking a pupil size in
+%                   children with Autism and is intended to remove baseline
+%                   variability; a matrix of trials * milliseconds since
+%                   stimulus onset
+%               baselinePerTrial: the set of baselines per trial (the pupil
+%                   size measured 250 ms prior to the onset of the white
+%                   ring stimulus, which marks the start of each trial)
+%               pupilTracePerBlock: pupil data for each block with one
+%                   baseline per block (the average of each block, using
+%                   avgFunction which defaults to nanmedian) subtracted; 
+%                   a maxtrix of blocks * milliseconds since stimulus
+%                   onset; this is what is plotted when you call this
+%                   function with plotWhat = 'trace'
+%               baselinePerBlock: the set of baselines per block (the
+%                   average of each block, using avgFunction which defaults
+%                   to nanmedian)
+%               avgTraceAcrossBlocks: the average of pupilTracePerBlock
+%                   across blocks; this is what is plotted when you call
+%                   this function with plotWhat = 'trace'
+%               power: the output of a power analysis designed by Scott;
+%                   10*log10(abs(p)), where p is the Power Spectral Density
+%                   of a spectrogram of avgTraceAcrossBlocks with a 1000 ms
+%                   window, no overlap in adjactent windows, 128 frequency
+%                   points in each of the discrete Fourier transforms, and
+%                   a sampling rate of 1000 hz
 
 % settings
 % plotWhat = 'trace'; % should be either 'power','trace', or empty
@@ -331,7 +360,7 @@ end
 
 % Scott's Fourier analysis
 clear y f t p power
-[y,f,t,p] = spectrogram(nanmean(blockPupilSize),1000,0,128,1000);
+[y,f,t,p] = spectrogram(avgPupilSizeAcrossBlocks,1000,0,128,1000);
 power = 10*log10(abs(p));
 
 if strcmp(plotWhat,'power')
@@ -357,11 +386,21 @@ end
 trialBaseline = trialBaseline';
 blockBaseline = blockBaseline';
 
+% get back to raw data
+rawPupilSizePerTrial = trialPupilSize + trialBaseline;
+for i = 1:length(blockBaseline)
+    rawPupilSizePerTrial(1 + 10*(i - 1):10*i) = rawPupilSizePerTrial(1 + 10*(i - 1):10*i) + blockBaseline(i);
+end
+
+% organize plot data into struct
+plotData = struct('pupilTracePerTrial',trialPupilSize,'baselinePerTrial',trialBaseline,'pupilTracePerBlock',blockPupilSize,'baselinePerBlock',blockBaseline,...
+    'avgTraceAcrossBlocks',avgPupilSizeAcrossBlocks,'power',power);
+
 % save data matrix for Scott
 % if ~isempty(filter)
-%     save(fullfile(directory,[subj '_PupilSize_' filter 'filter.mat']),'pupilData');
+%     save(fullfile(directory,[subj '_PupilSize_' filter 'filter.mat']),'rawPupilSizePerTrial','plotData');
 % else
-%     save(fullfile(directory,[subj '_PupilSize.mat']),'pupilData');
+%     save(fullfile(directory,[subj '_PupilSize.mat']),'rawPupilSizePerTrial','plotData');
 % end
 
 end
