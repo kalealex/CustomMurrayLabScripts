@@ -120,6 +120,11 @@ function [ rawPupilSizePerTrial, plotData ] = AK_GABA_getPupilSizeData( ascFilen
 %                   points in each of the discrete Fourier transforms, and
 %                   a sampling rate of 1000 hz
 
+% changes 170515
+%   blink remove is now independent of trials
+%   hampel filter using 500 ms window
+%   divide each block by block baseline
+
 % settings
 % plotWhat = 'trace'; % should be either 'power','trace', or empty
 % filter = 'windowAvg'; % should be either 'Hampel','IQR','SG','windowAvg','BLD' or empty
@@ -227,7 +232,7 @@ for iB = 1:length(block); % cycle through blocks of trials
                 [pSize,oIdx{iB}] = AK_windowIQRfilt(pSize,4000,3); % eliminate outliers outside of the IQR by +/- 3*IQR, w/in a sliding 4000ms window  
             case 'Hampel'
                 % Hampel outliers->windowMedian filter
-                [pSize,oIdx{iB}] = hampel(pSize,2000,3);
+                [pSize,oIdx{iB}] = hampel(pSize,500,3);
             case 'SG'
                 % apply Savitzky-Golay smoothing filter; local cubic modeling w/in 51 frame window 
                 pSize = sgolayfilt(pSize,3,51); 
@@ -243,7 +248,7 @@ for iB = 1:length(block); % cycle through blocks of trials
 
         % subtract out baseline
         blockBaseline(iB) = avgFunction(pSize);
-        pSizeCell{iB} = pSize' - blockBaseline(iB);
+        pSizeCell{iB} = pSize' ./ blockBaseline(iB) .* 100; % normalize data to baseline; change units to percent change
 
         % trim pupil data timecourse to start at the first
         % BlackOn and end at last BlackOn
@@ -257,16 +262,22 @@ for iB = 1:length(block); % cycle through blocks of trials
         
         % index in time where events start
         timeIndexS = arrayfun(@(x) find(time{iB}==x),WhiteOn{iB});
-
+        
+        % testing out different way of removing blinks than before
+        if removeBlinks
+            % remove blinks and saccades from signal independent of trial structure
+            pSizeCell{iB}(arrayfun(@(x) any(sacc==x) || any(blink==x),time{iB})) = nan;
+        end
+        
         for TI = 1:length(WhiteOn{iB}); % cycle through times of interest: times when the white stimulus comes on  
-            if removeBlinks
-                % convert blink and saccade trials to nans
-                if TI~=length(WhiteOn{iB}) && (~isempty(intersect(blink,(WhiteOn{iB}(TI)-500:WhiteOn{iB}(TI+1)))) || ~isempty(intersect(sacc,(WhiteOn{iB}(TI)-500:WhiteOn{iB}(TI+1))))) 
-                    pSizeCell{iB}(timeIndexS(TI):timeIndexS(TI+1)-1) = nan;
-                elseif ~isempty(intersect(blink,(WhiteOn{iB}(TI)-500:time{iB}(end)))) || ~isempty(intersect(sacc,(WhiteOn{iB}(TI)-500:time{iB}(end))))
-                    pSizeCell{iB}(timeIndexS(TI):end) = nan;
-                end
-            end
+%             if removeBlinks
+%                 % convert blink and saccade trials to nans
+%                 if TI~=length(WhiteOn{iB}) && (~isempty(intersect(blink,(WhiteOn{iB}(TI)-250:WhiteOn{iB}(TI+1)))) || ~isempty(intersect(sacc,(WhiteOn{iB}(TI)-250:WhiteOn{iB}(TI+1))))) 
+%                     pSizeCell{iB}(timeIndexS(TI):timeIndexS(TI+1)-1) = nan;
+%                 elseif ~isempty(intersect(blink,(WhiteOn{iB}(TI)-250:time{iB}(end)))) || ~isempty(intersect(sacc,(WhiteOn{iB}(TI)-250:time{iB}(end))))
+%                     pSizeCell{iB}(timeIndexS(TI):end) = nan;
+%                 end
+%             end
             % relative pupil size trace for each trial
             try
                 trialBaseline(TI+10*(iB-1)) = pSizeCell{iB}(timeIndexS(TI)-250);
@@ -353,8 +364,8 @@ if strcmp(plotWhat,'trace')
     end
     set(aH,'Title',text('String',title));
     xlabel('Time (ms)');
-    ylabel('Average Pupil Size');
-    axis([min(plotTime) max(plotTime) min(avgPupilSizeAcrossBlocks)-200 max(avgPupilSizeAcrossBlocks)+200]);
+    ylabel('Average Percent Change in Pupil Size from Baseline');
+    axis([min(plotTime) max(plotTime) min(avgPupilSizeAcrossBlocks)-25 max(avgPupilSizeAcrossBlocks)+25]);
     set(aH,'XTick',1:2000:max(plotTime));
 end
 
@@ -387,9 +398,9 @@ trialBaseline = trialBaseline';
 blockBaseline = blockBaseline';
 
 % get back to raw data
-rawPupilSizePerTrial = trialPupilSize + trialBaseline;
+rawPupilSizePerTrial = bsxfun(@plus,trialPupilSize,trialBaseline);
 for i = 1:length(blockBaseline)
-    rawPupilSizePerTrial(1 + 10*(i - 1):10*i) = rawPupilSizePerTrial(1 + 10*(i - 1):10*i) + blockBaseline(i);
+    rawPupilSizePerTrial(1 + 10*(i - 1):10*i) = bsxfun(@plus,rawPupilSizePerTrial(1 + 10*(i - 1):10*i),blockBaseline(i));
 end
 
 % organize plot data into struct
