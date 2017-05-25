@@ -6,6 +6,17 @@
 
 root_dir = 'L:\MurrayLab\ASD\Data';
 
+%% load previously saved trial exclusions?
+
+usePreviouslySavedExclusion = true;
+previousSaveFile = 'pupilAmpData2.mat';
+
+if usePreviouslySavedExclusion
+    load(fullfile('C:\Users\Alex Kale\Documents\MATLAB\CustomMurrayLabScripts\pupilSizeExperiment\amplitudeAnalysisData',previousSaveFile));
+    oldSubjects = subjects;
+    oldExcludeTrial = excludeTrial;
+end
+
 %% find subjects to include in analysis
 
 % for GABA in ASD
@@ -13,6 +24,11 @@ subjects = dir(fullfile(root_dir,'G*')); % structure of all matching items in di
 subjects = {subjects(:).name}; % cell array of subject codes/ folder names
 subjects = [subjects {'KG122'}]; % add kiddo
 subjects(cellfun(@(x) exist(x,'dir')==0,cellfun(@(x) fullfile(root_dir,x),subjects,'UniformOutput',false))) = []; % remove elements which are not valid directories
+
+if usePreviouslySavedExclusion
+    % use old exclusion index but add in any new subjects
+    newSubjects = setdiff(subjects,oldSubjects);
+end
 
 %% settings for trial exclusion and amplitude calculation
 
@@ -27,9 +43,13 @@ ampWindowHalfWidth = 25; % half of window width for averaging to find amplitude
 % preallocate
 excludeTrial = false(length(subjects),40); % exclusion log per trial per subject
 amp = nan(length(subjects),40); % amp per trial per subject
+timeMax = nan(length(subjects),40); % time of peak pupil size per trial per subject
+timeMin = nan(length(subjects),40); % time of trough pupil size per trial per subject
 ampSD = nan(length(subjects),1); % standard deviations of amp per subject
-trimmedAmp = nan(length(subjects),40); % amp per trial per subject, trimmed 20% of the highest amplitude
-trimmedAmpSD = nan(length(subjects),1); % standard deviations of amp per subject, trimmed 20% of the highest amplitude
+timeMaxSD = nan(length(subjects),1); % standard deviations of time of peak pupil size per subject
+timeMinSD = nan(length(subjects),1); % standard deviations of time of trough pupil size per subject
+% trimmedAmp = nan(length(subjects),40); % amp per trial per subject, trimmed 20% of the highest amplitude
+% trimmedAmpSD = nan(length(subjects),1); % standard deviations of amp per subject, trimmed 20% of the highest amplitude
 % allTrials = [];
 
 % empty figure so that old trials are not confused for the next trial to
@@ -71,43 +91,55 @@ for iSubj = 1:length(subjects)
                             minWindow = (minIdx-ampWindowHalfWidth):(minIdx+ampWindowHalfWidth);
                         end
                         % check whether this trial is worth including
-                        velocity = diff(data.pupilTracePerTrial(iTrial,:),1)/dt;
-%                         [~,velocity,~,~] = AK_BLDfilt(data.pupilTracePerTrial(iTrial,:)',.5,.6,hz);
-                        if any(abs(velocity) > velocityCriterion)
-                            % visualize the trial
-                            figure; hold on;
-                            plot(1:2000,data.pupilTracePerTrial(iTrial,:),'-b','LineWidth',1.5);
-                            % plot max and min windows
-                            plot(maxWindow,data.pupilTracePerTrial(iTrial,maxWindow),'-y','LineWidth',2);
-                            plot(minWindow,data.pupilTracePerTrial(iTrial,minWindow),'-y','LineWidth',2);
-                            % plot locations in trace that meet velocity criterion
-                            exceedsCriterion = data.pupilTracePerTrial(iTrial,:);
-                            exceedsCriterion(abs(velocity) <= velocityCriterion) = nan;
-                            plot(1:2000,exceedsCriterion,'-r','LineWidth',2);
-                            % labels
-                            title(['Pupil Size Experiment: ' subjects{iSubj} ' trial#' num2str(iTrial)]);
-                            xlabel('Time since stimulus onset (ms)');
-                            ylabel('Percent change in pupil Size from baseline');
-                            % manual input of decision to include or not
-                            disp('Look at the current trial and keep in mind whether the measurement noise will impact the amplitude signal.')
-                            decision = input('Should this trial be included in the analysis of pupil amplitude variablity? ');
-                            % close figures that are included, otherwise
-                            % send to back
-                            if decision
-                                % close figures that are included, such that
-                                % only excluded trials remain open in figure
-                                % windows
-                                close gcf
-                            else
-                                % send figure to back so that it is not
-                                % confused for a new figure
-                                uistack(gcf,'bottom')
+                        if usePreviouslySavedExclusion && ~any(strcmp(newSubjects,subjects{iSubj}))
+                            % use previously saved exclusions only for
+                            % subjects whose data has been examined
+                            % previously 
+                            excludeTrial(iSubj,iTrial) = oldExcludeTrial(strcmp(subjects{iSubj},oldSubjects),iTrial);
+                        else
+                            % examine trace if velocity threshold is
+                            % exceeded
+                            velocity = diff(data.pupilTracePerTrial(iTrial,:),1)/dt;
+    %                         [~,velocity,~,~] = AK_BLDfilt(data.pupilTracePerTrial(iTrial,:)',.5,.6,hz);
+                            if any(abs(velocity) > velocityCriterion)
+                                % visualize the trial
+                                figure; hold on;
+                                plot(1:2000,data.pupilTracePerTrial(iTrial,:),'-b','LineWidth',1.5);
+                                % plot max and min windows
+                                plot(maxWindow,data.pupilTracePerTrial(iTrial,maxWindow),'-y','LineWidth',2);
+                                plot(minWindow,data.pupilTracePerTrial(iTrial,minWindow),'-y','LineWidth',2);
+                                % plot locations in trace that meet velocity criterion
+                                exceedsCriterion = data.pupilTracePerTrial(iTrial,:);
+                                exceedsCriterion(abs(velocity) <= velocityCriterion) = nan;
+                                plot(1:2000,exceedsCriterion,'-r','LineWidth',2);
+                                % labels
+                                title(['Pupil Size Experiment: ' subjects{iSubj} ' trial#' num2str(iTrial)]);
+                                xlabel('Time since stimulus onset (ms)');
+                                ylabel('Percent change in pupil Size from baseline');
+                                % manual input of decision to include or not
+                                disp('Look at the current trial and keep in mind whether the measurement noise will impact the amplitude signal.')
+                                decision = input('Should this trial be included in the analysis of pupil amplitude variablity? ');
+                                % close figures that are included, otherwise
+                                % send to back
+                                if decision
+                                    % close figures that are included, such that
+                                    % only excluded trials remain open in figure
+                                    % windows
+                                    close gcf
+                                else
+                                    % send figure to back so that it is not
+                                    % confused for a new figure
+                                    uistack(gcf,'bottom')
+                                end
+                                excludeTrial(iSubj,iTrial) = ~logical(decision);
                             end
-                            excludeTrial(iSubj,iTrial) = ~logical(decision);
                         end
                         if ~excludeTrial(iSubj,iTrial)
-                            % document amplitude
+                            % document amplitude and the time of peak and
+                            % trough pupil size
                             amp(iSubj,iTrial) = nanmedian(data.pupilTracePerTrial(iTrial,maxWindow)) - nanmedian(data.pupilTracePerTrial(iTrial,minWindow));
+                            timeMax(iSubj,iTrial) = maxIdx;
+                            timeMin(iSubj,iTrial) = minIdx;
                         end
                     end
                     
@@ -137,25 +169,44 @@ for iSubj = 1:length(subjects)
     end
     % standard deviation
     ampSD(iSubj) = nanstd(amp(iSubj,:));
+    timeMaxSD(iSubj) = nanstd(timeMax(iSubj,:));
+    timeMinSD(iSubj) = nanstd(timeMin(iSubj,:));
     % trimmed standard deviation
-    trimmedAmp(iSubj,:) = amp(iSubj,:);
-    trimmedAmp(iSubj,AK_trimIdx(trimmedAmp(iSubj,:),20,'high')) = nan; % trim 20% of the highest amplitudes
-    trimmedAmpSD(iSubj) = nanstd(trimmedAmp(iSubj,:));
+%     trimmedAmp(iSubj,:) = amp(iSubj,:);
+%     trimmedAmp(iSubj,AK_trimIdx(trimmedAmp(iSubj,:),20,'high')) = nan; % trim 20% of the highest amplitudes
+%     trimmedAmpSD(iSubj) = nanstd(trimmedAmp(iSubj,:));
 end
 
-% plot amplitudes
-figure(1);
-AK_plotSpread_mouseover({ampSD,trimmedAmpSD},{subjects,subjects});
+% % plot amplitudes to check the impact of trimming 20% of highest amplitudes
+% figure(1);
+% AK_plotSpread_mouseover({ampSD,trimmedAmpSD},{subjects,subjects});
 
 %% saving things
 
 cd('C:\Users\Alex Kale\Documents\MATLAB\CustomMurrayLabScripts\pupilSizeExperiment\amplitudeAnalysisData');
 
-% figures
-h = get(0,'children');
-for i=1:length(h)
-  saveas(h(i), ['figure' num2str(i)], 'jpg');
-end
+% % figures
+% h = get(0,'children');
+% for i=1:length(h)
+%   saveas(h(i), ['figure10' num2str(i)], 'jpg');
+% end
 
 % data
-save('pupilAmpData.mat','subjects','excludeTrial','amp','ampSD','trimmedAmp','trimmedAmpSD');
+% save('pupilAmpData.mat','subjects','excludeTrial','amp','ampSD','trimmedAmp','trimmedAmpSD');
+save('pupilAmpData2.mat','subjects','excludeTrial','amp','ampSD','timeMax','timeMaxSD','timeMin','timeMinSD');
+
+%% plot amplitudes by group to see if there is something there
+
+% index: 1 == ASD; 0 == NT
+groupIdx = ~cellfun(@isempty,cellfun(@(x) regexp(x,regexptranslate('wildcard','*G1*')),subjects,'UniformOutput',false));
+% plot ampSD
+figure;
+AK_plotSpread_mouseover({ampSD(groupIdx),ampSD(~groupIdx)},{subjects(groupIdx),subjects(~groupIdx)},'xNames',{'ASD','NT'},'showMM',4);
+% plot timeMaxSD
+figure;
+AK_plotSpread_mouseover({timeMaxSD(groupIdx),timeMaxSD(~groupIdx)},{subjects(groupIdx),subjects(~groupIdx)},'xNames',{'ASD','NT'},'showMM',4);
+% plot timeMinSD
+figure;
+AK_plotSpread_mouseover({timeMinSD(groupIdx),timeMinSD(~groupIdx)},{subjects(groupIdx),subjects(~groupIdx)},'xNames',{'ASD','NT'},'showMM',4);
+
+
