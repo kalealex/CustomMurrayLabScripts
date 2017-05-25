@@ -115,6 +115,10 @@ end
 % %         RePlot();
 %     end
 
+%FYI: in order to set default data grouping, use the following code:
+    % set(findobj('tag', 'PlotByGroups'), 'Value', [1 or 0])
+    % feval(get(findobj('tag', 'PlotByGroups'), 'Callback'))
+
     function ExportData_CB(~,~)
         % get user input for where to save file
         [fileName,pathName] = uiputfile;
@@ -124,18 +128,39 @@ end
             experiment(1:length(sheetsCurrent)) = struct;
             for iExp = 1:length(sheetsCurrent);
                 switch sheetType{iExp}
-                    case 'block fMRI' || 'non-block fMRI'
-                        experiment(iExp) = struct('experimentName',sheetsCurrent{iExp},'conditions',condsCurrent,'statistics',statsCurrent...
-                            ,'subjects',subjectsCurrent,'sessions',fMRIsessions,'sets',fMRIsets,...
-                            'blocks','Blocks are in order from 1 to the maximum number of blocks run in a set. If this is a singleton dimension, there are no block-level statistics selected.');
+                    case {'block ftap', 'non-block ftap'}
+                        experiment(iExp).experimentName = sheetsCurrent{iExp};
+                        experiment(iExp).conditions = condsCurrent;
+                        experiment(iExp).statistics = statsCurrent;
+                        experiment(iExp).subjects = subjectsCurrent;
+                        experiment(iExp).sessions = 'ftap';
+                        experiment(iExp).sets = fMRIsets{1:3};
+                        experiment(iExp).blocks = 'Blocks are in order from 1 to the maximum number of blocks run in a set. If this is a singleton dimension, there are no block-level statistics selected.';
+
+                    case {'block fMRI', 'non-block fMRI'}
+                        experiment(iExp).experimentName = sheetsCurrent{iExp};
+                        experiment(iExp).conditions = condsCurrent;
+                        experiment(iExp).statistics = statsCurrent;
+                        experiment(iExp).subjects = subjectsCurrent;
+                        experiment(iExp).sessions = fMRIsessions;
+                        experiment(iExp).sets = fMRIsets;
+                        experiment(iExp).blocks = 'Blocks are in order from 1 to the maximum number of blocks run in a set. If this is a singleton dimension, there are no block-level statistics selected.';
                     case 'GABA psychophysics'
-                        experiment(iExp) = struct('experimentName',sheetsCurrent{iExp},'conditions',condsCurrent,'statistics',statsCurrent...
-                            ,'subjects',subjectsCurrent,'sessions','Sessions should be a singleton dimension for GABA psychophysics. All statistics for this experiment will be at an index of 1 in this dimension.',...
-                            'sets',PsychophysicsRuns,'blocks','Blocks should be a singleton dimension for GABA psychophysics. All statistics for this experiment will be at an index of 1 in this dimension.');
+                        experiment(iExp).experimentName = sheetsCurrent{iExp};
+                        experiment(iExp).conditions = condsCurrent;
+                        experiment(iExp).statistics = statsCurrent;
+                        experiment(iExp).subjects = subjectsCurrent;
+                        experiment(iExp).sessions = 'Sessions should be a singleton dimension for GABA psychophysics. All statistics for this experiment will be at an index of 1 in this dimension.';
+                        experiment(iExp).sets = PsychophysicsRuns;
+                        experiment(iExp).blocks = 'Blocks should be a singleton dimension for GABA psychophysics. All statistics for this experiment will be at an index of 1 in this dimension.';
                     case 'Lorazepam psychophysics'
-                        experiment(iExp) = struct('experimentName',sheetsCurrent{iExp},'conditions',condsCurrent,'statistics',statsCurrent...
-                            ,'subjects',subjectsCurrent,'sessions',LZsessions,'sets',PsychophysicsRuns,...
-                            'blocks','Blocks should be a singleton dimension for GABA psychophysics. All statistics for this experiment will be at an index of 1 in this dimension.');
+                        experiment(iExp).experimentName = sheetsCurrent{iExp};
+                        experiment(iExp).conditions = condsCurrent;
+                        experiment(iExp).statistics = statsCurrent;
+                        experiment(iExp).subjects = subjectsCurrent;
+                        experiment(iExp).sessions = LZsessions;
+                        experiment(iExp).sets = PsychophysicsRuns;
+                        experiment(iExp).blocks = 'Blocks should be a singleton dimension for GABA psychophysics. All statistics for this experiment will be at an index of 1 in this dimension.';
                 end
             end
             key = struct('general',generalKey,'experiment',experiment);
@@ -157,30 +182,24 @@ end
             [~,~,dataTables{iSheet}] = xlsread(xlsfile,sheetsCurrent{iSheet}); % read sheet
             % what kind of sheet is this? 
             % for the purpose of creating mouseover labels
-            if ~isempty(regexp(sheetsCurrent{iSheet},regexptranslate('wildcard','block*'),'ONCE')) % is this a sheet for block statistics?
+            if strcmp(sheetsCurrent{iSheet},'block ftap') % is this a sheet for ftap block statistics?
+                % label sheet type
+                sheetType{iSheet} = 'block ftap';
+            elseif strcmp(sheetsCurrent{iSheet},'ftap') % is this a sheet for non-block ftap statistics?
+                % label sheet type
+                sheetType{iSheet} = 'non-block ftap';
+            elseif ~isempty(regexp(sheetsCurrent{iSheet},regexptranslate('wildcard','block*'),'ONCE')) % is this a sheet for fMRI block statistics?
                 % label sheet type
                 sheetType{iSheet} = 'block fMRI';
-                % set default data grouping
-%                 set(findobj('tag','PlotByGroups'),'Value',1)
-%                 feval(get(findobj('tag','PlotByGroups'),'Callback'))
             elseif ~isempty(regexp(sheetsCurrent{iSheet},regexptranslate('wildcard','*GABA*'),'ONCE')) % is this a sheet for GABA psychophysics statistics?
                 % label sheet type
                 sheetType{iSheet} = 'GABA psychophysics';
-                % set default data grouping
-%                 set(findobj('tag','PlotByGroups'),'Value',1)
-%                 feval(get(findobj('tag','PlotByGroups'),'Callback'))
             elseif ~isempty(regexp(sheetsCurrent{iSheet},regexptranslate('wildcard','*LZ*'),'ONCE')) % is this a sheet for Lorazepam psychophysics statistics?
                 % label sheet type
                 sheetType{iSheet} = 'Lorazepam psychophysics';
-                % set default data grouping
-%                 set(findobj('tag','PlotByGroups'),'Value',0)
-%                 feval(get(findobj('tag','PlotByGroups'),'Callback'))
             else
                 % label sheet type
                 sheetType{iSheet} = 'non-block fMRI';
-                % set default data grouping
-%                 set(findobj('tag','PlotByGroups'),'Value',1)
-%                 feval(get(findobj('tag','PlotByGroups'),'Callback'))
             end
             % fill in empty cells with nans
             dataTables{iSheet}(cellfun(@isempty,dataTables{iSheet})) = {nan};
@@ -530,13 +549,17 @@ end
         end    
     end
 
-    % change AK_plotSpread_mouseover to AK_plotSpreadGUI
-        % move mouseover to GUI function so that it works for all subplots
+% change the way that groups are indexed to be more flexible:
+    % should accomodate any number of groups greater than 1
+    % should depend on value of plotByGroups and sheetType variables
+    
 
     function RePlot()
         % separate into vectors of data by group, stats of interest, generate labels, and group information for plotting
         for iSheet = 1:length(sheetsCurrent);
-            % indices for group membership
+            % indices for group membership: determined based on sheetType
+            % and plot by groups
+%             if plotByGroups
             ASDindex{iSheet} = find(~cellfun(@isempty,regexp(dataTables{iSheet}(:,1),regexptranslate('wildcard','G1*')))==1);
             NTindex{iSheet} = find(~cellfun(@isempty,regexp(dataTables{iSheet}(:,1),regexptranslate('wildcard','G3*')))==1);
             % use only subjects currently selected
@@ -579,6 +602,107 @@ end
                 % create mouseover labels for subject,fMRI session, and
                 % set# and prepare exportData matrix
                 switch sheetType{thisCondSheetIdx} % labels different for block and summary stats
+                    case 'non-block ftap' % for summary stats:
+                        % mouseover labels
+                        for iA = 1:length(ASDindex{thisCondSheetIdx})
+                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3}];
+                        end
+                        for iT = 1:length(NTindex{thisCondSheetIdx})
+                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3}];
+                        end
+                        
+                        %%% format data for export (01/26/17):
+                        for iSubj = 1:length(subjectsCurrent)
+                            for iSess = 1
+                                for iSet = 1:3
+                                    % indices for this subject, session, and set
+                                    if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
+                                        thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                        thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard','*ftap*')));
+                                        thisSetIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                    elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard','*ftap*')));
+                                        thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                    elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
+                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard','*ftap*')));
+                                        thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                    elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                        warning('No subjects of either group selected');
+                                        thisSubjIdx = false;
+                                        thisSessIdx = false;
+                                        thisSetIdx = false;
+                                    end
+                                    % store data
+                                    tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
+                                    if isempty(find(thisSubjIdx & thisSessIdx & thisSetIdx,1))
+                                        exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,1) = nan;
+                                    else
+                                        exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,1) = tempData(thisSubjIdx & thisSessIdx & thisSetIdx);
+                                    end
+                                end
+                            end
+                        end
+                    case 'block ftap' % for block stats:
+                        % mouseover labels
+                        maxBlocks = 0; 
+                        for iA = 1:length(ASDindex{thisCondSheetIdx})
+                            % for plots
+                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3} ': block' num2str(dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5})];
+                            % for export
+                            if maxBlocks < dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5}
+                                maxBlocks = dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5};
+                            end
+                        end
+                        for iT = 1:length(NTindex{thisCondSheetIdx})
+                            % for plots
+                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3} ': block' num2str(dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5})];
+                            % for export
+                            if maxBlocks < dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5}
+                                maxBlocks = dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5};
+                            end
+                        end
+                        
+                        %%% format data for export (01/26/17):
+                        for iSubj = 1:length(subjectsCurrent)
+                            for iSess = 1
+                                for iSet = 1:3
+                                    for iBlock = 1:maxBlocks
+                                        % indices for this subject, session, and set
+                                        if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
+                                            thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                            thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard','*ftap*')));
+                                            thisSetIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                            thisBlockIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
+                                        elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                            thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                            thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard','*ftap*')));
+                                            thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                            thisBlockIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
+                                        elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
+                                            thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                            thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard','*ftap*')));
+                                            thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                            thisBlockIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
+                                        elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                            warning('No subjects of either group selected');
+                                            thisSubjIdx = false;
+                                            thisSessIdx = false;
+                                            thisSetIdx = false;
+                                            thisBlockIdx = false;
+                                        end
+                                        % store data
+                                        tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
+                                        if isempty(find(thisSubjIdx & thisSessIdx & thisSetIdx & thisBlockIdx,1))
+                                            exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,iBlock) = nan;
+                                        else
+                                            exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,iBlock) = tempData(thisSubjIdx & thisSessIdx & thisSetIdx & thisBlockIdx);
+                                        end
+                                    end
+                                end
+                            end
+                        end
                     case 'non-block fMRI' % for summary stats:
                         % mouseover labels
                         for iA = 1:length(ASDindex{thisCondSheetIdx})
