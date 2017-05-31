@@ -620,7 +620,7 @@ end
                 switch sheetType{thisCondSheetIdx} % labels different for block and summary stats
                     case 'non-block ftap' % for summary stats:
                         % mouseover labels and temporary arrays
-                        tempLabels = cell; % preallocate
+                        tempLabels = cell(0); % preallocate
                         tempData = [];
                         for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
                             % mouseover labels
@@ -658,7 +658,7 @@ end
                         end
                     case 'block ftap' % for block stats:
                         % mouseover labels and temporary arrays
-                        tempLabels = cell; % preallocate
+                        tempLabels = cell(0); % preallocate
                         tempData = [];
                         maxBlocks = 0;
                         for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
@@ -705,7 +705,7 @@ end
                         end
                     case 'non-block fMRI' % for summary stats:
                         % mouseover labels and temporary arrays
-                        tempLabels = cell; % preallocate
+                        tempLabels = cell(0); % preallocate
                         tempData = [];
                         for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
                             for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
@@ -743,7 +743,7 @@ end
                         end
                     case 'block fMRI' % for block stats:
                         % mouseover labels and temporary arrays
-                        tempLabels = cell; % preallocate
+                        tempLabels = cell(0); % preallocate
                         tempData = [];
                         maxBlocks = 0; 
                         for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
@@ -790,7 +790,7 @@ end
                         end
                     case 'GABA psychophysics'
                         % mouseover labels and temporary arrays
-                        tempLabels = cell; % preallocate
+                        tempLabels = cell(0); % preallocate
                         tempData = [];
                         for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
                             % mouseover labels
