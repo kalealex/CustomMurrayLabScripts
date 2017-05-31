@@ -6,6 +6,7 @@
 
 top_dir = 'L:\MurrayLab\ASD\SuppressionSummation';
 home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
+save_dir = 'L:\MurrayLab\DataTablesForGUI';
 % list current subjects here; won't work for subjects with unanalyzed fMRI data
 % all subjects
 subjects = {'S_AMK_20160401','S_AVF_20160427','S_AVF_20160510','S_AW_20160420','S_BK_20160517','S_DP_20160427','S_JCM_20160426','S_MN_20160523','S_MPS_20160325','S_RM_20160414','S_SOM_20160414'};
@@ -196,7 +197,7 @@ sum(all(cellfun(@isempty,sum(:,1:2)),2),:) = [];
 %% write cell arrays to xls file spreadsheets
 
 success = zeros(5,1); % preallocate
-xlsFilename = fullfile(top_dir,'fMRI_HeadMotion_Data_Tables.xlsx'); % name file for only subjects with good data
+xlsFilename = fullfile(save_dir,'fMRI_HeadMotion_Data_Tables_SupSum.xlsx'); % name file for only subjects with good data
 
 success(1) = xlswrite(xlsFilename,MTloc,'MT Loc');
 success(2) = xlswrite(xlsFilename,V1loc,'V1 Loc');

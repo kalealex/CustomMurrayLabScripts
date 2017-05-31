@@ -6,8 +6,12 @@
 
 top_dir = 'L:\MurrayLab\ASD\Data';
 home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
+save_dir = 'L:\MurrayLab\DataTablesForGUI';
+subjects = dir(fullfile(top_dir,'G*')); % look for folders matching subject code format
+subjects = {subjects.name}; % cat names
+subjects = [subjects {'KG122'}]; % add kiddo
 % list current list of subjects here; last updated 7/7/16
-subjects = {'G101','G102','G103','G104','G105','G106','G107','G109','G110','G111','G112','G307','G310','G311','G312','G313','G314','G315','G316','G317','G318','G319','G320','G322','G327'};
+% subjects = {'G101','G102','G103','G104','G105','G106','G107','G109','G110','G111','G112','G307','G310','G311','G312','G313','G314','G315','G316','G317','G318','G319','G320','G322','G327'};
 
 % strings for logfile recognition
 locStr = {'MTlocalizer','V1localizer','V1localizer_fix'};
@@ -432,7 +436,7 @@ supsum(all(cellfun(@isempty,supsum(:,1:2)),2),:) = [];
 %% write cell arrays to xls file spreadsheets
 
 success = zeros(3,1); % preallocate
-xlsFilename = fullfile(top_dir,'fMRI_Behavioral_Data_Tables.xlsx'); % name file
+xlsFilename = fullfile(save_dir,'fMRI_Behavioral_Data_Tables.xlsx'); % name file
 
 success(1) = xlswrite(xlsFilename,loc,'Localizers');
 success(2) = xlswrite(xlsFilename,contrast,'Contrast');

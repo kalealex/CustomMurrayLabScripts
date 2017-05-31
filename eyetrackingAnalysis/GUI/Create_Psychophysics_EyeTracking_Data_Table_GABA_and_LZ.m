@@ -14,6 +14,7 @@ top_dir = 'L:\MurrayLab';
 gaba_dir = 'ASD\Data';
 lz_dir = 'Lorazepam\Data';
 home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
+save_dir = 'L:\MurrayLab\DataTablesForGUI';
 
 %% add paths fir AMK functions
 
@@ -517,9 +518,9 @@ if ~analyzeOnly
 
     success = zeros(4,1); % preallocate
     if onlyGood
-        xlsFilename = fullfile(top_dir,'Psychophysics_EyeTracking_Data_Tables_OnlyGood.xlsx'); % name file for only subjects with good data
+        xlsFilename = fullfile(save_dir,'Psychophysics_EyeTracking_Data_Tables_OnlyGood.xlsx'); % name file for only subjects with good data
     else
-        xlsFilename = fullfile(top_dir,'Psychophysics_EyeTracking_Data_Tables.xlsx'); % name file
+        xlsFilename = fullfile(save_dir,'Psychophysics_EyeTracking_Data_Tables.xlsx'); % name file
     end
 
     success(1) = xlswrite(xlsFilename,GABAmotion,'GABA Motion');

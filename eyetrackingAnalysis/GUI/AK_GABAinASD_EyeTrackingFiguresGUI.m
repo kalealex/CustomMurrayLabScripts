@@ -1,25 +1,35 @@
 function AK_GABAinASD_EyeTrackingFiguresGUI( xlsfile )
-%AK_GABAinASD_EyetrackingFiguresGUI is a guided user interface designed to 
+%AK_GABAinASD_EyeTrackingFiguresGUI is a guided user interface designed to 
 %read in specifically formatted data from a .xls file and turn it into a 
 %beeswarm plot. Specifically, the function creates a subplot for each
 %statistic selected via the GUI so that each condition of each scan type/ 
-%experiment selected receives its own distribution spaced out along the x axis.
-%Within each condition, data are further sparated into groups (ASD and NT) 
+%experiment selected receives its own distribution spaced out along the x
+%axis. Within each condition, there is the option to further separate data
+%into groups (ASD vs NT for GABAinASD data; drug vs placebo for Lorazepam)
 %so that each group * condition * experiment combination has a distribution 
 %plotted on a common axis. There are also options to filter data to appear
 %in different colors within each distribution based on subject ID or based
-%on a criterion and some other statistic (i.e., the filter no tracking time > .8
-%would highlight points where no tracking time exceeds .8 in a different
-%color than points which do not me that criterion)
+%on a criterion and some other statistic (i.e., the filter no tracking time
+%> .8 would highlight points where no tracking time exceeds .8 in a
+%different color than points which do not me that criterion). The GUI
+%relies heavily on text labels that respond to mouse movements. Mouseover
+%labels correspond to each individual data point, such that each point will
+%be labeled as you hover a cursor over it. Also, while conventional
+%x-labels describe subject groupings, sub-labels will pop up below the
+%x-axis to describe what experiment and condition each distribution belongs
+%to.
 %
 % Run the script Create_fMRI_EyeTracking_Data_Table_GABAinASD.m in order to
 % generate correctly formatted .xls files for the GUI to read. The existing
-% file on the L drive should be named fMRI_EyeTracking_Data_Tables*.xlsx.
+% file(s) on the L drive should be named fMRI_EyeTracking_Data_Tables*.xlsx,
+% fMRI_Behavioral_Data_Tables*.xlsx, or
+% Psychophysics_EyeTracking_Data_Tables*.xlsx. Head motion data has its own
+% simpler version of the GUI.
 %   
 %INPUT:
 %   xlsfile [optional]: full file directory for .xls file where eye tracking data
 %       tables are stored (string); defaults to UI selection from
-%       directory: 'L:\MurrayLab\ASD\Data'
+%       directory: 'L:\MurrayLab\DataTablesForGUI'
 %OUTPUT: (option to save output using 'Export' button)
 %   exportData: a maxrix with 6 dimensions
 %       (experiment,condition,statisitic,subject,session,set/run) or 7
@@ -29,17 +39,12 @@ function AK_GABAinASD_EyeTrackingFiguresGUI( xlsfile )
 %       selected for visualization; blank indices are filled with nans
 %   key: a structure containing descriptions of the data at each element of
 %       exportData, listed in order of dimensions
-%
-%IMPORTANT NOTES:
-%   GUI does not yet work for data from Lorazepam study
-%   implementation of "plotByGroups" toggling is not yet finished; GUI will
-%       only plot by groups for GABAinASD study data
 
 
 %% check input 
 
 if nargin < 1
-    xlsfile_dir = 'L:\MurrayLab\ASD\Data'; % set root dir (should be the same for any cpu where network drive is mapped to 'L:\')
+    xlsfile_dir = 'L:\MurrayLab\DataTablesForGUI'; % set root dir (should be the same for any cpu where network drive is mapped to 'L:\')
     cd(xlsfile_dir);
     [xlsfile_name,xlsfile_dir] = uigetfile('*.xlsx','Select a file from which to load data');
     xlsfile = fullfile(xlsfile_dir,xlsfile_name); 
@@ -68,7 +73,7 @@ statsAll = {''};
 statsAllIdx = {[]};
 subjectsAll = {''};
 
-% plotByGroups = []; % boolean: whether or not to plot data by groups
+plotByGroups = []; % boolean: whether or not to plot data by groups
 exportData = []; % optional output (needs to have scope of full function)
 
 % for reference
@@ -99,21 +104,15 @@ end
         uicontrol('tag','Subjects','string','Subjects','callback',@Subjects_CB,'pos',[5 56 60 20]);
         uicontrol('tag','Filter','string','Filter Data','callback',@Filter_CB,'pos',[5 33 60 20]);
         uicontrol('tag','ExportButton','string','Export','callback',@ExportData_CB,'pos',[5 10 60 20]);
-%         uicontrol('Style','togglebutton','tag','PlotByGroups','string','Plot by group','callback',@PlotByGroup_CB,'pos',[5 148 70 20])
+        uicontrol('Style','togglebutton','tag','PlotByGroups','string','Plot by group','callback',@PlotByGroup_CB,'pos',[5 148 70 20])
     end
     
-%     function PlotByGroup_CB(~,~)
-%         % button compressed -> true; not compressed -> false
-%         buttonState = logical(get(findobj('tag','PlotByGroups'),'Value'));
-%         plotByGroups = buttonState;
-%         % test
-%         if plotByGroups
-%             disp('plot by groups');
-%         else
-%             disp('don''t plot by groups');
-%         end
-% %         RePlot();
-%     end
+    function PlotByGroup_CB(~,~)
+        % button compressed -> true; not compressed -> false
+        buttonState = logical(get(findobj('tag','PlotByGroups'),'Value'));
+        plotByGroups = buttonState;
+        RePlot();
+    end
 
 %FYI: in order to set default data grouping, use the following code:
     % set(findobj('tag', 'PlotByGroups'), 'Value', [1 or 0])
@@ -557,28 +556,44 @@ end
     function RePlot()
         % separate into vectors of data by group, stats of interest, generate labels, and group information for plotting
         for iSheet = 1:length(sheetsCurrent);
-            % indices for group membership: determined based on sheetType
-            % and plot by groups
-%             if plotByGroups
-            ASDindex{iSheet} = find(~cellfun(@isempty,regexp(dataTables{iSheet}(:,1),regexptranslate('wildcard','G1*')))==1);
-            NTindex{iSheet} = find(~cellfun(@isempty,regexp(dataTables{iSheet}(:,1),regexptranslate('wildcard','G3*')))==1);
+            % indices for group membership: groupIdx{sheet/experiment, group}
+            if plotByGroups
+                % parse groups depending on sheet type
+                switch sheetType{iSheet}
+                    case 'Lorazepam psychophysics'
+                        groupIdx{iSheet,1} = find(strcmp(dataTables{iSheet}(:,2),'drug')); % group1 == drug
+                        groupIdx{iSheet,2} = find(strcmp(dataTables{iSheet}(:,2),'placebo')); % group2 == placebo
+                        groupLabels{iSheet} = {'drug','placebo'}; % to use in x-axis labels
+                    otherwise % GABA in ASD 
+                        groupIdx{iSheet,1} = find(~cellfun(@isempty,regexp(dataTables{iSheet}(:,1),regexptranslate('wildcard','*G1*')))==1); % group1 == ASD
+                        groupIdx{iSheet,2} = find(~cellfun(@isempty,regexp(dataTables{iSheet}(:,1),regexptranslate('wildcard','*G3*')))==1); % group2 == NT
+                        groupLabels{iSheet} = {'ASD','NT'}; % to use in x-axis labels
+                end
+            else
+                % don't index by groups, but maintain similar data indexing
+                groupIdx{iSheet,1} = 2:length(dataTables{iSheet}(:,1)); % group1 == all subjects; exclude first row of column labels from index
+                groupLabels{iSheet} = {'All'}; % to use in x-axis labels
+            end
             % use only subjects currently selected
             if ~all(cellfun(@isempty,subjectsCurrent))
-                ASDindex{iSheet} = ASDindex{iSheet}(ismember(dataTables{iSheet}(ASDindex{iSheet},1),subjectsCurrent));
-                NTindex{iSheet} = NTindex{iSheet}(ismember(dataTables{iSheet}(NTindex{iSheet},1),subjectsCurrent));
+                for iGroup = 1:length(groupIdx(iSheet,:))
+                    groupIdx{iSheet,iGroup} = groupIdx{iSheet,iGroup}(ismember(dataTables{iSheet}(groupIdx{iSheet,iGroup},1),subjectsCurrent));
+                end
             end
             % index for subjects of interest (highlight_subjects)
             if ~all(cellfun(@isempty,highlight_subjects))
-                ASDhighlightIndex{iSheet} = zeros(length(ASDindex{iSheet}),1);
-                NThighlightIndex{iSheet} = zeros(length(NTindex{iSheet}),1);
-                for iSubj = 1:length(highlight_subjects);
-                    ASDhighlightIndex{iSheet} = ASDhighlightIndex{iSheet}+strcmp(dataTables{iSheet}(ASDindex{iSheet},1),highlight_subjects{iSubj});
-                    NThighlightIndex{iSheet} = NThighlightIndex{iSheet}+strcmp(dataTables{iSheet}(NTindex{iSheet},1),highlight_subjects{iSubj});
+                for iGroup = 1:length(groupIdx(iSheet,:))
+                    highlightIdx{iSheet,iGroup} = zeros(length(groupIdx{iSheet,iGroup}),1);
+                    for iSubj = 1:length(highlight_subjects);
+                        highlightIdx{iSheet,iGroup} = highlightIdx{iSheet,iGroup} + strcmp(dataTables{iSheet}(groupIdx{iSheet,iGroup},1),highlight_subjects{iSubj});
+                    end
+                    highlightIdx{iSheet,iGroup} = logical(highlightIdx{iSheet,iGroup});
                 end
-                ASDhighlightIndex{iSheet} = logical(ASDhighlightIndex{iSheet});
-                NThighlightIndex{iSheet} = logical(NThighlightIndex{iSheet});
             end
         end
+        
+        % preallocate counter
+        x_labelIdx = 1;
         
         % assignment of data arrays
         for iCond = 1:length(condsCurrent)
@@ -596,19 +611,25 @@ end
                 statCondIdx = intersect(statsAllIdx{thisCondSheetIdx}{thisStatIdx},condsAllIdx{thisCondIdx}); % should be only one column where stat and cond intersect
                 % assign data to plot to stat structure
                 stat(iStat).name = statsCurrent{iStat};
-                stat(iStat).ASDvalues{iCond} = arrayfun(@cell2mat,dataTables{thisCondSheetIdx}(ASDindex{thisCondSheetIdx},statCondIdx)); % for ASD group
-                stat(iStat).NTvalues{iCond} = arrayfun(@cell2mat,dataTables{thisCondSheetIdx}(NTindex{thisCondSheetIdx},statCondIdx)); % for NT group
+                for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                    stat(iStat).group(iGroup).values{iCond} = cell2mat(dataTables{thisCondSheetIdx}(groupIdx{thisCondSheetIdx,iGroup},statCondIdx));
+                end
             
                 % create mouseover labels for subject,fMRI session, and
                 % set# and prepare exportData matrix
                 switch sheetType{thisCondSheetIdx} % labels different for block and summary stats
                     case 'non-block ftap' % for summary stats:
-                        % mouseover labels
-                        for iA = 1:length(ASDindex{thisCondSheetIdx})
-                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3}];
-                        end
-                        for iT = 1:length(NTindex{thisCondSheetIdx})
-                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3}];
+                        % mouseover labels and temporary arrays
+                        tempLabels = cell; % preallocate
+                        tempData = [];
+                        for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                            % mouseover labels
+                            for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
+                                stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),3}];
+                            end
+                            % temporary arrays for data export
+                            tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                            tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                         end
                         
                         %%% format data for export (01/26/17):
@@ -616,26 +637,17 @@ end
                             for iSess = 1
                                 for iSet = 1:3
                                     % indices for this subject, session, and set
-                                    if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard','*ftap*')));
-                                        thisSetIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                    elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard','*ftap*')));
-                                        thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                    elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard','*ftap*')));
-                                        thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                    elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                    if isfield(stat(iStat).group,'labels')
+                                        thisSubjIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                        thisSessIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard','*ftap*')));
+                                        thisSetIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                    else
                                         warning('No subjects of either group selected');
                                         thisSubjIdx = false;
                                         thisSessIdx = false;
                                         thisSetIdx = false;
                                     end
                                     % store data
-                                    tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
                                     if isempty(find(thisSubjIdx & thisSessIdx & thisSetIdx,1))
                                         exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,1) = nan;
                                     else
@@ -645,22 +657,21 @@ end
                             end
                         end
                     case 'block ftap' % for block stats:
-                        % mouseover labels
-                        maxBlocks = 0; 
-                        for iA = 1:length(ASDindex{thisCondSheetIdx})
-                            % for plots
-                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3} ': block' num2str(dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5})];
-                            % for export
-                            if maxBlocks < dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5}
-                                maxBlocks = dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5};
-                            end
-                        end
-                        for iT = 1:length(NTindex{thisCondSheetIdx})
-                            % for plots
-                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3} ': block' num2str(dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5})];
-                            % for export
-                            if maxBlocks < dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5}
-                                maxBlocks = dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5};
+                        % mouseover labels and temporary arrays
+                        tempLabels = cell; % preallocate
+                        tempData = [];
+                        maxBlocks = 0;
+                        for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                            for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
+                                % mouseover labels for plots
+                                stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),3} ': block' num2str(dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5})];
+                                % for export
+                                if maxBlocks < dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5}
+                                    maxBlocks = dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5};
+                                end
+                                % temporary arrays for data export
+                                tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                                tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                             end
                         end
                         
@@ -670,22 +681,12 @@ end
                                 for iSet = 1:3
                                     for iBlock = 1:maxBlocks
                                         % indices for this subject, session, and set
-                                        if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                            thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                            thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard','*ftap*')));
-                                            thisSetIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                            thisBlockIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
-                                        elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
-                                            thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                            thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard','*ftap*')));
-                                            thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                            thisBlockIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
-                                        elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                            thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                            thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard','*ftap*')));
-                                            thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                            thisBlockIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
-                                        elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                        if isfield(stat(iStat).group,'labels')
+                                            thisSubjIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                            thisSessIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard','*ftap*')));
+                                            thisSetIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                            thisBlockIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
+                                        else
                                             warning('No subjects of either group selected');
                                             thisSubjIdx = false;
                                             thisSessIdx = false;
@@ -693,7 +694,6 @@ end
                                             thisBlockIdx = false;
                                         end
                                         % store data
-                                        tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
                                         if isempty(find(thisSubjIdx & thisSessIdx & thisSetIdx & thisBlockIdx,1))
                                             exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,iBlock) = nan;
                                         else
@@ -704,12 +704,17 @@ end
                             end
                         end
                     case 'non-block fMRI' % for summary stats:
-                        % mouseover labels
-                        for iA = 1:length(ASDindex{thisCondSheetIdx})
-                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3}];
-                        end
-                        for iT = 1:length(NTindex{thisCondSheetIdx})
-                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3}];
+                        % mouseover labels and temporary arrays
+                        tempLabels = cell; % preallocate
+                        tempData = [];
+                        for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                            for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
+                                % mouseover labels
+                                stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),3}];
+                                % temporary arrays for data export
+                                tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                                tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
+                            end
                         end
                         
                         %%% format data for export (01/26/17):
@@ -717,26 +722,17 @@ end
                             for iSess = 1:2
                                 for iSet = 1:9
                                     % indices for this subject, session, and set
-                                    if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
-                                        thisSetIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                    elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
-                                        thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                    elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
-                                        thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                    elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                    if isfield(stat(iStat).group,'labels')
+                                        thisSubjIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                        thisSessIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
+                                        thisSetIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                    else
                                         warning('No subjects of either group selected');
                                         thisSubjIdx = false;
                                         thisSessIdx = false;
                                         thisSetIdx = false;
                                     end
                                     % store data
-                                    tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
                                     if isempty(find(thisSubjIdx & thisSessIdx & thisSetIdx,1))
                                         exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,1) = nan;
                                     else
@@ -746,22 +742,21 @@ end
                             end
                         end
                     case 'block fMRI' % for block stats:
-                        % mouseover labels
+                        % mouseover labels and temporary arrays
+                        tempLabels = cell; % preallocate
+                        tempData = [];
                         maxBlocks = 0; 
-                        for iA = 1:length(ASDindex{thisCondSheetIdx})
-                            % for plots
-                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3} ': block' num2str(dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5})];
-                            % for export
-                            if maxBlocks < dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5}
-                                maxBlocks = dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),5};
-                            end
-                        end
-                        for iT = 1:length(NTindex{thisCondSheetIdx})
-                            % for plots
-                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3} ': block' num2str(dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5})];
-                            % for export
-                            if maxBlocks < dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5}
-                                maxBlocks = dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),5};
+                        for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                            for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
+                                % mouseover labels for plots
+                                stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),3} ': block' num2str(dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5})];
+                                % for export
+                                if maxBlocks < dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5}
+                                    maxBlocks = dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5};
+                                end
+                                % temporary arrays for data export
+                                tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                                tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                             end
                         end
                         
@@ -771,22 +766,12 @@ end
                                 for iSet = 1:9
                                     for iBlock = 1:maxBlocks
                                         % indices for this subject, session, and set
-                                        if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                            thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                            thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
-                                            thisSetIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                            thisBlockIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
-                                        elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
-                                            thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                            thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
-                                            thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                            thisBlockIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
-                                        elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                            thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                            thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
-                                            thisSetIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
-                                            thisBlockIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
-                                        elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                        if isfield(stat(iStat).group,'labels')
+                                            thisSubjIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                            thisSessIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*fMRI' num2str(iSess) '*'])));
+                                            thisSetIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*set' num2str(iSet) '*'])));
+                                            thisBlockIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*block' num2str(iBlock) '*'])));
+                                        else
                                             warning('No subjects of either group selected');
                                             thisSubjIdx = false;
                                             thisSessIdx = false;
@@ -794,7 +779,6 @@ end
                                             thisBlockIdx = false;
                                         end
                                         % store data
-                                        tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
                                         if isempty(find(thisSubjIdx & thisSessIdx & thisSetIdx & thisBlockIdx,1))
                                             exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iSet,iBlock) = nan;
                                         else
@@ -805,34 +789,32 @@ end
                             end
                         end
                     case 'GABA psychophysics'
-                        % mouseover labels
-                        for iA = 1:length(ASDindex{thisCondSheetIdx})
-                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': run' num2str(dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2})];
-                        end
-                        for iT = 1:length(NTindex{thisCondSheetIdx})
-                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': run' num2str(dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2})];
+                        % mouseover labels and temporary arrays
+                        tempLabels = cell; % preallocate
+                        tempData = [];
+                        for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                            % mouseover labels
+                            for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
+                                stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': run' num2str(dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2})];
+                            end
+                            % temporary arrays for data export
+                            tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                            tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                         end
                         
                         %%% format data for export (01/26/17):
                         for iSubj = 1:length(subjectsCurrent)
                             for iRun = 1:4
                                 % indices for this subject, session, and set
-                                if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                    thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                    thisRunIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
-                                elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
-                                    thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                    thisRunIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
-                                elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                    thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                    thisRunIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
-                                elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                if isfield(stat(iStat).group,'labels')
+                                    thisSubjIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                    thisRunIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
+                                else
                                     warning('No subjects of either group selected');
                                     thisSubjIdx = false;
                                     thisRunIdx = false;
                                 end
                                 % store data
-                                tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
                                 if isempty(find(thisSubjIdx & thisRunIdx,1))
                                     exportData(thisCondSheetIdx,iCond,iStat,iSubj,1,iRun,1) = nan;
                                 else
@@ -841,12 +823,17 @@ end
                             end
                         end
                     case 'Lorazepam psychophysics'
-                        % mouseover labels
-                        for iA = 1:length(ASDindex{thisCondSheetIdx})
-                            stat(iStat).ASDlabels{iCond}{iA} = [dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),1} ': ' dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),2} ': run' num2str(dataTables{thisCondSheetIdx}{ASDindex{thisCondSheetIdx}(iA),3})];
-                        end
-                        for iT = 1:length(NTindex{thisCondSheetIdx})
-                            stat(iStat).NTlabels{iCond}{iT} = [dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),1} ': ' dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),2} ': run' num2str(dataTables{thisCondSheetIdx}{NTindex{thisCondSheetIdx}(iT),3})];
+                        % mouseover labels and temporary arrays
+                        tempLabels = cell(0); % preallocate
+                        tempData = [];
+                        for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                            % mouseover labels
+                            for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
+                                stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2} ': run' num2str(dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),3})];
+                            end
+                            % temporary arrays for data export
+                            tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                            tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                         end
                         
                         %%% format data for export (01/26/17):
@@ -854,26 +841,17 @@ end
                             for iSess = 1:2 % drug (1) vs placebo (2)
                                 for iRun = 1:4
                                     % indices for this subject, session, and set
-                                    if isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*' LZsessions(iSess) '*'])));
-                                        thisRunIdx = ~cellfun(@isempty,regexp([stat(iStat).ASDlabels{iCond} stat(iStat).NTlabels{iCond}],regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
-                                    elseif isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*' LZsessions(iSess) '*'])));
-                                        thisRunIdx = ~cellfun(@isempty,regexp(stat(iStat).ASDlabels{iCond},regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
-                                    elseif ~isfield(stat,'ASDlabels') && isfield(stat,'NTlabels')
-                                        thisSubjIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
-                                        thisSessIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*' LZsessions(iSess) '*'])));
-                                        thisRunIdx = ~cellfun(@isempty,regexp(stat(iStat).NTlabels{iCond},regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
-                                    elseif ~isfield(stat,'ASDlabels') && ~isfield(stat,'NTlabels')
+                                    if isfield(stat(iStat).group,'labels')
+                                        thisSubjIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' subjectsCurrent{iSubj} '*'])));
+                                        thisSessIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*' LZsessions{iSess} '*'])));
+                                        thisRunIdx = ~cellfun(@isempty,regexp(tempLabels,regexptranslate('wildcard',['*run' num2str(iRun) '*'])));
+                                    else
                                         warning('No subjects of either group selected');
                                         thisSubjIdx = false;
                                         thisSessIdx = false;
                                         thisRunIdx = false;
                                     end
                                     % store data
-                                    tempData = [stat(iStat).ASDvalues{iCond}; stat(iStat).NTvalues{iCond}];
                                     if isempty(find(thisSubjIdx & thisSessIdx & thisRunIdx,1))
                                         exportData(thisCondSheetIdx,iCond,iStat,iSubj,iSess,iRun,1) = nan;
                                     else
@@ -884,6 +862,7 @@ end
                         end
                 end
             end
+            
             % use filters only for selected conds 
             if ~all(cellfun(@isempty,filterIdx))
                 % generate index for the condition number wihtin the current sheet for accessing filterIdx (easier to do this here rather than later)
@@ -893,31 +872,19 @@ end
                 % this will allow for easier indexing in the creation of highlightIndices
                 useFiltIdx{iCond} = filterIdx{thisCondSheetIdx}(:,thisSheetCondIdx);
             end
-        end
 
-        % x-axis labels
-        x_labelIdx = 1;
-        for iCond = 1:length(condsCurrent)
+            % x-axis labels:
             % do this differently depending on how selected subjects are grouped
-            if any(cellfun(@any,ASDindex)) && any(cellfun(@any,NTindex)) % if there are some subjects of each group
-                x_labels{x_labelIdx} = [condsCurrent{iCond} ' ASD']; % ASD label
-                x_labels{x_labelIdx+1} = [condsCurrent{iCond} ' NT']; % NT label
-                x_labels{x_labelIdx+2} = ''; % blank label for spacing
-                x_labelIdx = length(x_labels)+1; % advance counter
-            elseif any(cellfun(@any,ASDindex)) && ~any(cellfun(@any,NTindex)) % if there are only ASD subjects
-                x_labels{x_labelIdx} = [condsCurrent{iCond} ' ASD']; % ASD label
-                x_labels{x_labelIdx+1} = ''; % blank label for spacing
-                x_labelIdx = length(x_labels)+1; % advance counter
-            elseif ~any(cellfun(@any,ASDindex)) && any(cellfun(@any,NTindex)) % if there are only NT subjects
-                x_labels{x_labelIdx} = [condsCurrent{iCond} ' NT']; % ASD label
-                x_labels{x_labelIdx+1} = ''; % blank label for spacing
-                x_labelIdx = length(x_labels)+1; % advance counter
-            elseif ~any(cellfun(@any,ASDindex)) && ~any(cellfun(@any,NTindex)) % if there are no subjects of either group
-                x_labels{x_labelIdx} = ''; % blank label for spacing
-                x_labelIdx = length(x_labels)+1; % advance counter
+            for iGroup = 1:length(groupIdx(thisCondSheetIdx,:))
+                if any(cellfun(@any,groupIdx(thisCondSheetIdx,iGroup)))
+                    x_labels{x_labelIdx} = [condsCurrent{iCond} ' ' groupLabels{thisCondSheetIdx}{iGroup}];
+                    x_labelIdx = x_labelIdx + 1;
+                end
             end
+            x_labels{x_labelIdx} = ''; % blank label for spacing between coonditions
+            x_labelIdx = x_labelIdx + 1;
         end
-        x_labels(end) = [];
+        x_labels(end) = []; % remove last blank x-axis label
         
         % group data arrays, mouseover labels, and highlight indices for plotting
         if ~all(cellfun(@isempty,highlight_subjects)) || ~all(cellfun(@isempty,filterIdx))
@@ -941,62 +908,41 @@ end
                    end
                else 
                    % indices for condsCurrent and sheetsCurrent for this x_label:
-                   clear condLabelIdx sheetLabelIdx
+                   clear labelCondIdx labelSheetIdx labelGroupIdx
                    % do this differently for block and non-block x_labels
                    if ~isempty(strfind(x_labels{iX},'block')) % if this x_label is for stats by block
-                       condLabelIdx = find(AK_whichPattern(x_labels{iX},condsCurrent) & ~cellfun(@isempty,strfind(condsCurrent,'block'))'); % which cond corresponds to x_labels{iX}
-                       sheetLabelIdx = find(AK_whichPattern(x_labels{iX},sheetsCurrent) & ~cellfun(@isempty,strfind(sheetsCurrent,'block'))); % which sheet corresponds to x_labels{iX}
+                       labelCondIdx = find(AK_whichPattern(x_labels{iX},condsCurrent) & ~cellfun(@isempty,strfind(condsCurrent,'block'))'); % which cond corresponds to x_labels{iX}
+                       labelSheetIdx = find(AK_whichPattern(x_labels{iX},sheetsCurrent) & ~cellfun(@isempty,strfind(sheetsCurrent,'block'))); % which sheet corresponds to x_labels{iX}
                    else % if this x_label is for stats by set, rather than by block
-                       condLabelIdx = find(AK_whichPattern(x_labels{iX},condsCurrent) & cellfun(@isempty,strfind(condsCurrent,'block'))'); % which cond corresponds to x_labels{iX}
-                       sheetLabelIdx = find(AK_whichPattern(x_labels{iX},sheetsCurrent) & cellfun(@isempty,strfind(sheetsCurrent,'block'))); % which sheet corresponds to x_labels{iX}
+                       labelCondIdx = find(AK_whichPattern(x_labels{iX},condsCurrent) & cellfun(@isempty,strfind(condsCurrent,'block'))'); % which cond corresponds to x_labels{iX}
+                       labelSheetIdx = find(AK_whichPattern(x_labels{iX},sheetsCurrent) & cellfun(@isempty,strfind(sheetsCurrent,'block'))); % which sheet corresponds to x_labels{iX}
                    end
-                   if find(AK_whichPattern(x_labels{iX},{'ASD','NT'})) == 1 && ~cellfun(@isempty,stat(iStat).ASDvalues(condLabelIdx)) % is ASD label?
-                       % match ASD x_labels for cond with proper data arrays and empty datapoint labels
-                       stat(iStat).plotData(iX) = stat(iStat).ASDvalues(condLabelIdx);
-                       stat(iStat).plotLabels(iX) = stat(iStat).ASDlabels(condLabelIdx);
-                       stat(iStat).x_labels(iX) = {'ASD'};
+                   % what group does this data belong to?
+                   labelGroupIdx = find(AK_whichPattern(x_labels{iX},groupLabels{labelSheetIdx}));
+                   % does this label match any group and is there any data for this intersection of stat, group, and condition?
+                   if ~isempty(labelGroupIdx) && ~cellfun(@isempty,stat(iStat).group(labelGroupIdx).values(labelCondIdx)) 
+                       % match group x_labels for cond with proper data arrays and empty datapoint labels
+                       stat(iStat).plotData(iX) = stat(iStat).group(labelGroupIdx).values(labelCondIdx);
+                       stat(iStat).plotLabels(iX) = stat(iStat).group(labelGroupIdx).labels(labelCondIdx);
+                       stat(iStat).x_labels(iX) = groupLabels{labelSheetIdx}(labelGroupIdx);
                        % append highlightIndices
                        if ~all(cellfun(@isempty,highlight_subjects)) && all(cellfun(@isempty,filterIdx)) && iStat==1
-                           highlightIndices = vertcat(highlightIndices,ASDhighlightIndex{sheetLabelIdx});
-                           distIdx = vertcat(distIdx,repmat(iX,size(ASDhighlightIndex{sheetLabelIdx})));
+                           highlightIndices = vertcat(highlightIndices,highlightIdx{labelSheetIdx,labelGroupIdx});
+                           distIdx = vertcat(distIdx,repmat(iX,size(highlightIdx{labelSheetIdx,labelGroupIdx})));
                        end
                        if all(cellfun(@isempty,highlight_subjects)) && ~all(cellfun(@isempty,filterIdx)) && iStat==1
-                           highlightIndices = vertcat(highlightIndices,2.*useFiltIdx{condLabelIdx}(ASDindex{sheetLabelIdx}));
-                           distIdx = vertcat(distIdx,repmat(iX,size(2.*useFiltIdx{condLabelIdx}(ASDindex{sheetLabelIdx}))));
+                           highlightIndices = vertcat(highlightIndices,2.*useFiltIdx{labelCondIdx}(groupIdx{labelSheetIdx,labelGroupIdx}));
+                           distIdx = vertcat(distIdx,repmat(iX,size(2.*useFiltIdx{labelCondIdx}(groupIdx{labelSheetIdx,labelGroupIdx}))));
                        end
                        if ~all(cellfun(@isempty,highlight_subjects)) && ~all(cellfun(@isempty,filterIdx)) && iStat==1
-                           highlightIndices = vertcat(highlightIndices, ASDhighlightIndex{sheetLabelIdx} + 2.*useFiltIdx{condLabelIdx}(ASDindex{sheetLabelIdx}) );
-                           distIdx = vertcat(distIdx,repmat(iX,size(ASDhighlightIndex{sheetLabelIdx} + 2.*useFiltIdx{condLabelIdx}(ASDindex{sheetLabelIdx}))));
+                           highlightIndices = vertcat(highlightIndices, highlightIdx{labelSheetIdx,labelGroupIdx} + 2.*useFiltIdx{labelCondIdx}(groupIdx{labelSheetIdx,labelGroupIdx}) );
+                           distIdx = vertcat(distIdx,repmat(iX,size(highlightIdx{labelSheetIdx,labelGroupIdx} + 2.*useFiltIdx{labelCondIdx}(groupIdx{labelSheetIdx,labelGroupIdx}))));
                        end
                        % append x axis label
                        if iStat==1
-                           xAxisLabel = [xAxisLabel {x_labels{iX}(1:end-4)}]; % add experiment name to x axis label
+                           xAxisLabel = [xAxisLabel {AK_eraseSubstring(x_labels{iX},[' ' groupLabels{labelSheetIdx}{labelGroupIdx}])}]; % add experiment name to x axis label
                            xAxisLabelX = [xAxisLabelX iX];
-                       end
-                   elseif find(AK_whichPattern(x_labels{iX},{'ASD','NT'})) == 2 && ~cellfun(@isempty,stat(iStat).NTvalues(condLabelIdx)) % is NT label?
-                       % match NT x_labels for cond with proper data arrays and empty datapoint labels
-                       stat(iStat).plotData(iX) = stat(iStat).NTvalues(condLabelIdx);
-                       stat(iStat).plotLabels(iX) = stat(iStat).NTlabels(condLabelIdx);
-                       stat(iStat).x_labels(iX) = {'NT'};
-                       % append highlightIndices
-                       if ~all(cellfun(@isempty,highlight_subjects)) && all(cellfun(@isempty,filterIdx)) && iStat==1
-                           highlightIndices = vertcat(highlightIndices,NThighlightIndex{sheetLabelIdx});
-                           distIdx = vertcat(distIdx,repmat(iX,size(NThighlightIndex{sheetLabelIdx})));
-                       end
-                       if all(cellfun(@isempty,highlight_subjects)) && ~all(cellfun(@isempty,filterIdx)) && iStat==1
-                           highlightIndices = vertcat(highlightIndices,2.*useFiltIdx{condLabelIdx}(NTindex{sheetLabelIdx}));
-                           distIdx = vertcat(distIdx,repmat(iX,size(2.*useFiltIdx{condLabelIdx}(NTindex{sheetLabelIdx}))));
-                       end
-                       if ~all(cellfun(@isempty,highlight_subjects)) && ~all(cellfun(@isempty,filterIdx)) && iStat==1
-                           highlightIndices = vertcat(highlightIndices, NThighlightIndex{sheetLabelIdx} + 2.*useFiltIdx{condLabelIdx}(NTindex{sheetLabelIdx}) );
-                           distIdx = vertcat(distIdx,repmat(iX,size(NThighlightIndex{sheetLabelIdx} + 2.*useFiltIdx{condLabelIdx}(NTindex{sheetLabelIdx}))));
-                       end
-                       % append x axis label (if this is the first stat and
-                       % (either there are no ASD x labels or the preceding x label was not an ASD label))
-                       if iStat==1 && ( ~any(cell2mat(cellfun(@(x) find(AK_whichPattern(x,{'ASD','NT'}))==1,x_labels(~cellfun(@isempty,x_labels)),'UniformOutput',false))) || find(AK_whichPattern(x_labels{iX-1},{'ASD','NT'})) ~= 1 ) % only append label if this condition name has not already been added to the x axis label
-                           xAxisLabel = [xAxisLabel {x_labels{iX}(1:end-3)}]; % add experiment name to x axis label
-                           xAxisLabelX = [xAxisLabelX iX];
-                       end
+                       end 
                    end
                end
            end
@@ -1025,7 +971,8 @@ end
                 xAxisLabelY = yL(1) - (0.1 + .07*(length(statsCurrent)-1))*(yL(2)-yL(1)); % lower limit of y axis minus 10% of y axis range, minus an extra 7% per subplot
                 % experiment labels as text
                 for iE = 1:length(xAxisLabel)
-                    text(xAxisLabelX(iE),xAxisLabelY,xAxisLabel{iE});
+                    t = text(xAxisLabelX(iE),xAxisLabelY,xAxisLabel{iE},'tag','xlabel experiment');
+                    set(t,'Visible','off');
                 end
                 % legend
                 if iStat==1
@@ -1098,7 +1045,8 @@ end
                 xAxisLabelY = yL(1) - (0.1 + .07*(length(statsCurrent)-1))*(yL(2)-yL(1)); % lower limit of y axis minus 10% of y axis range, minus an extra 7% per subplot
                 % experiment labels as text
                 for iE = 1:length(xAxisLabel)
-                    text(xAxisLabelX(iE),xAxisLabelY,xAxisLabel{iE});
+                    t = text(xAxisLabelX(iE),xAxisLabelY,xAxisLabel{iE},'tag','xlabel experiment');
+                    set(t,'Visible','off');
                 end
                 % legend
                 if iStat==1
@@ -1152,38 +1100,46 @@ end
                     end
                 end
             end
-            % pass input to mouseover function
-            set(fH,'windowbuttonmotionfcn',{@mouseover,plotH,rawData,mouseoverLabels});
-            % pass input to resize function
+            % pass input to single mousemove function that deals with both
+            % mouseover labels and x-axis label visibility
+            set(fH,'windowbuttonmotionfcn',{@mousemove,plotH,rawData,mouseoverLabels});
+            % pass input to function which redraws x-labels when window is resized
             set(fH,'ResizeFcn',{@drawXLabels,xAxisLabel,xAxisLabelX})
         end   
     end
     
-    function mouseover(src,ev,L,data,labels)
+    function mousemove(src,ev,plotHandles,data,labels)
         %since this is a figure callback, the first input is the figure handle:
         f=handle(src);
-        %like all callbacks, the second input, ev, isn't used. 
-
+        %like all callbacks, the second input, ev, isn't used.
+        
         %determine which object is below the cursor:
         obj=hittest(f); %<-- the important line in this function
         
-        if ~isequal(obj,f) % if the current object is not the figure window
-            if any(any(any(cellfun(@(x) isequal(obj,x),L)))) %if over any plot... 
+        % call mouseover labels function
+        mouseoverLabels(f,obj,plotHandles,data,labels);
+        % call xlabel visibility function
+        xLabelVisibility(f,obj)
+    end
+
+    function mouseoverLabels(figHandle,currentObj,plotHandles,data,labels)
+        if ~isequal(currentObj,figHandle) % if the current object is not the figure window
+            if any(any(any(cellfun(@(x) isequal(currentObj,x),plotHandles)))) %if over any plot... 
                 % change pointer when hovering over plot
-                set(f,'Pointer','crosshair');
+                set(figHandle,'Pointer','crosshair');
 
                 % determine which stat and distribution plot
-                Lindex = find(cellfun(@(x) isequal(obj,x),L));
-                [~, Lcol, ~] = ind2sub(size(L),Lindex);
+                plotHindex = find(cellfun(@(x) isequal(currentObj,x),plotHandles));
+                [~, plotHcol, ~] = ind2sub(size(plotHandles),plotHindex);
 
                 %get cursor coordinates in its axes:
-                a=get(L{Lindex},'parent');
+                a=get(plotHandles{plotHindex},'parent');
                 point=get(a,'currentpoint');
                 xclick=point(1,1,1);
                 yclick=point(1,2,1);
 
                 %determine which point we're over:
-                idx=findclosestpoint2D(xclick,yclick,L{Lindex});
+                idx=findclosestpoint2D(xclick,yclick,plotHandles{plotHindex});
 
                 %make a "tool tip" that displays data point
                 xl = xlim; yl = ylim;
@@ -1191,31 +1147,84 @@ end
                 xoffset=xrange/1000;
                 yoffset=yrange/1000;
 
-                delete(findobj(f,'tag','mytooltip')); %delete last tool tip
-                text(Lcol+xoffset,data{Lindex}(idx)+yoffset,labels{Lindex}{idx},...
-                    'backgroundcolor',[1 1 .8],'tag','mytooltip','edgecolor',[0 0 0],...
+                delete(findobj(figHandle,'tag','mouseover')); %delete last mouseover
+                text(plotHcol+xoffset,data{plotHindex}(idx)+yoffset,labels{plotHindex}{idx},...
+                    'backgroundcolor',[1 1 .8],'tag','mouseover','edgecolor',[0 0 0],...
                     'hittest','off');
             else
                 % change pointer back and delete plot
                 set(gcf,'Pointer','arrow');
-                delete(findobj(f,'tag','mytooltip')); %delete last tool tip
+                delete(findobj(figHandle,'tag','mouseover')); %delete last mouseover
             end
         else
             % change pointer back and delete plot
             set(gcf,'Pointer','arrow');
-            delete(findobj(f,'tag','mytooltip')); %delete last tool tip
+            delete(findobj(figHandle,'tag','mouseover')); %delete last mouseover
         end
+    end
+
+    function xLabelVisibility(figHandle,currentObj)
+        % get current axes
+        a = findobj(figHandle,'Type','Axes');
+        if ~isequal(currentObj,figHandle) % if the current object is not the figure window
+            % what is this object?
+            objIDidx = cellfun(@(x) arrayfun(@(y) isequal(currentObj,y),x),... % for each set of axis children, return an array of logicals looking for a match for currentObj
+                arrayfun(@allchild,a,'UniformOutput',false),... % returns a cell array where each cell contains an array of children corresponding to each axis in this figure 
+                'UniformOutput',false);
+            % is it a child of any axis on this figure?
+            axisIdx = find(cellfun(@any, objIDidx));
+            if ~isempty(axisIdx) %if over any axis?
+                %get cursor coordinates in its axes:
+                point=get(a(axisIdx),'currentpoint');
+                xclick=point(1,1,1);
+                yclick=point(1,2,1);
+
+                % text handles for xlabel for experiments on the current axis
+                t = findobj(a(axisIdx),'tag','xlabel experiment');
+                
+                % determine which x-label is closest
+                idx = findclosestpoint2D(xclick,yclick,t);
+                
+                % make all x axis labels invisible
+                for iA = 1:length(a)
+                    allT = findobj(a(iA),'Type','Text');
+                    % exclude current mouseover label from this list without
+                    % eleminating mouseover label text object
+                    mouseoverIdx = arrayfun(@(x) isequal(x,findobj(allT,'tag','mouseover')),allT);
+                    copyT = allT(~mouseoverIdx);
+                    for iE = 1:length(copyT)
+                        set(copyT(iE),'Visible','off');
+                    end
+                end
+                
+                % make current x axis label visbile
+                set(t(idx),'Visible','on');
+            end
+        end      
     end
 
     function index=findclosestpoint2D(xclick,yclick,datasource)
         %this function checks which point in the plotted line "datasource"
-        %is closest to the point specified by xclick/yclick. It's kind of 
-        %complicated, but this isn't really what this demo is about...
+        %is closest to the point specified by xclick/yclick.
 
-        xdata=get(datasource,'xdata');
-        ydata=get(datasource,'ydata');
+        if all(isprop(datasource,'xdata') & isprop(datasource,'ydata'))
+            % for data points
+            xdata = get(datasource,'xdata');
+            ydata = get(datasource,'ydata');
+        elseif all(isprop(datasource,'position'))
+            % for non-data points
+            positions = get(datasource,'position');
+            xdata = cellfun(@(x) x(1), positions);
+            ydata = cellfun(@(x) x(2), positions);
+        end
 
         activegraph=get(datasource,'parent');
+        
+        if iscell(activegraph)
+            % deal with the case where get parent returns a cell array of
+            % references, all to the same parent axis
+            activegraph = activegraph{1}; 
+        end
 
         pos=getpixelposition(activegraph);
         xlim=get(activegraph,'xlim');
@@ -1258,13 +1267,12 @@ end
             % figure out y position of x labels relative to axes
             yL = a(iA).YLim;
             xAxisLabelY = yL(1) - (0.1 + .07*(length(a)-1))*(yL(2)-yL(1)); % lower limit of y axis minus 10% of y axis range, minus an extra 7% per subplot
-            % get text handles for current axis
-            t = findobj(a(iA),'Type','Text');
+            % text handles for xlabel for experiments on the current axis
+            t = findobj(a(iA),'tag','xlabel experiment');
             % experiment labels as text
             for iE = 1:length(xAxisLabel)
+                t(iE) = text(xAxisLabelX(iE),xAxisLabelY,xAxisLabel{iE},'tag','xlabel experiment');
                 set(t(iE),'Visible','off');
-                t(iE) = text(xAxisLabelX(iE),xAxisLabelY,xAxisLabel{iE});
-                set(t(iE),'Visible','on');
             end
         end
     end

@@ -11,7 +11,7 @@ onlyGood = 0;
 
 top_dir = 'L:\MurrayLab\ASD\Data';
 home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
-
+save_dir = 'L:\MurrayLab\DataTablesForGUI';
 % strings for logfile/PRT file recognition and association
 MTlocStr = {'MTlocalizer'};
 V1locStr = {'V1localizer'};
@@ -1831,9 +1831,9 @@ bl_ftap(all(cellfun(@isempty,bl_ftap(:,1:2)),2),:) = [];
 
 success = zeros(12,1); % preallocate
 if onlyGood
-    xlsFilename = fullfile(top_dir,'fMRI_EyeTracking_Data_Tables_OnlyGood.xlsx'); % name file for only subjects with good data
+    xlsFilename = fullfile(save_dir,'fMRI_EyeTracking_Data_Tables_OnlyGood.xlsx'); % name file for only subjects with good data
 else
-    xlsFilename = fullfile(top_dir,'fMRI_EyeTracking_Data_Tables.xlsx'); % name file
+    xlsFilename = fullfile(save_dir,'fMRI_EyeTracking_Data_Tables.xlsx'); % name file
 end
 
 success(1) = xlswrite(xlsFilename,MTloc,'MT Loc');

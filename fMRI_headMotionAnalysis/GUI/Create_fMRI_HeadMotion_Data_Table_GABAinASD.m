@@ -7,6 +7,7 @@
 
 top_dir = 'L:\MurrayLab\ASD\Data';
 home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
+save_dir = 'L:\MurrayLab\DataTablesForGUI';
 % list current subjects here; won't work for subjects with unanalyzed fMRI data
 % all subjects
 subjects = dir(fullfile(top_dir,'G*')); % look for folders matching subject code format
@@ -261,7 +262,7 @@ ftap(all(cellfun(@isempty,ftap(:,1:2)),2),:) = [];
 
 success = zeros(6,1); % preallocate
 % xlsFilename = fullfile(top_dir,'fMRI_EyeTracking_Data_Tables.xlsx'); % name file
-xlsFilename = fullfile(top_dir,'fMRI_HeadMotion_Data_Tables.xlsx'); % name file for only subjects with good data
+xlsFilename = fullfile(save_dir,'fMRI_HeadMotion_Data_Tables_GABAinASD.xlsx'); % name file for only subjects with good data
 
 success(1) = xlswrite(xlsFilename,MTloc,'MT Loc');
 success(2) = xlswrite(xlsFilename,V1loc,'V1 Loc');

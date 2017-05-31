@@ -14,12 +14,12 @@ function AK_GABAinASD_HeadMotionFiguresGUI( xlsfile )
 %
 % Run the script Create_fMRI_HeadMotion_Data_Table_GABAinASD.m in order to
 % generate correctly formatted .xls files for the GUI to read. The existing
-% file on the L drive should be named fMRI_HeadMotion_Data_Tables.xlsx.
+% file on the L drive should be named fMRI_HeadMotion_Data_Tables*.xlsx.
 %   
 %INPUT:
 %   xlsfile [optional]: full file directory for .xls file where head motion data
 %       tables are stored (string); defaults to UI selection from
-%       directory: 'L:\MurrayLab\ASD\Data'
+%       directory: 'L:\MurrayLab\DataTablesForGUI'
 %OUTPUT: (option to save output using 'Export' button)
 %   exportData: a maxrix with 5 dimensions (subject, session, set, 
 %       experiment, statistic), the content of which will match whatever 
@@ -43,7 +43,7 @@ function AK_GABAinASD_HeadMotionFiguresGUI( xlsfile )
 %% check input 
 
 if nargin < 1
-    xlsfile_dir = 'L:\MurrayLab\ASD\Data'; % set root dir (should be the same for any cpu where network drive is mapped to 'L:\')
+    xlsfile_dir = 'L:\MurrayLab\DataTablesForGUI'; % set root dir (should be the same for any cpu where network drive is mapped to 'L:\')
     cd(xlsfile_dir);
     xlsfile_name = uigetfile('*.xlsx','Select a file from which to load data');
     xlsfile = fullfile(xlsfile_dir,xlsfile_name); 
