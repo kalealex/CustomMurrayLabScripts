@@ -50,6 +50,8 @@ if nargin < 1
     xlsfile = fullfile(xlsfile_dir,xlsfile_name); 
 end
 
+addpath(genpath('L:\MurrayLab\ASD\Data\Analysis_scripts\AMK_Code'));
+
 %% initialize display and set up GUI referencing callback functions
 
 % set prior values for variables spanning multiple functions
@@ -120,7 +122,7 @@ end
 
     function ExportData_CB(~,~)
         % get user input for where to save file
-        [fileName,pathName] = uiputfile;
+        [fileName,pathName] = uiputfile('*.mat', 'Save Current Selections as');
         % save formatted data
         if fileName ~= 0 % did they enter a name and directory?
             generalKey = {'experiments','conditions','statistics','subjects','sessions','set/runs','blocks'};

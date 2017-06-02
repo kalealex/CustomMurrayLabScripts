@@ -49,6 +49,8 @@ if nargin < 1
     xlsfile = fullfile(xlsfile_dir,xlsfile_name); 
 end
 
+addpath(genpath('L:\MurrayLab\ASD\Data\Analysis_scripts\AMK_Code'));
+
 %% initialize display and set up GUI referencing callback functions
 
 % set prior values for variables spanning multiple functions
