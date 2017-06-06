@@ -4,8 +4,10 @@
 
 %% designate directories 
 
+addpath(genpath('L:\MurrayLab\ASD\Data'));
+
 top_dir = 'L:\MurrayLab\ASD\Data';
-home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
+% home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
 
 %% load eyetracking quality table to find subjects to include in analysis
 

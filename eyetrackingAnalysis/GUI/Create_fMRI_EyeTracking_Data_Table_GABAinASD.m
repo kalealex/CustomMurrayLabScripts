@@ -9,6 +9,8 @@ onlyGood = 0;
 
 %% designate directory, subject, and logfile indentifying information
 
+addpath(genpath('L:\MurrayLab\ASD\Data'));
+
 top_dir = 'L:\MurrayLab\ASD\Data';
 home_dir = 'C:\Users\Alex Kale\Documents\MATLAB\MurrayLab';
 save_dir = 'L:\MurrayLab\DataTablesForGUI';

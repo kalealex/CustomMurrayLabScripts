@@ -1,4 +1,4 @@
-% Template_for_Eyetracking_QualityTable
+% makeEyetrackingQualityTable_GABAinASD
 % MurrayLab 2016
 % created by AMK 9/7/16
 
@@ -9,8 +9,10 @@
 % new; false --> append). Each set per fMRI session per subject gets a row
 % in the eyetracking data quality table if the following conditions are
 % met:
-    % the subjects are accounted for in the most recent version of the file AllAssociatedPRTfilenames.mat 
     % the fMRI data has been analyzed in Brain Voyager, resulting in subfolders named set1, set2, set3, etc.
+    % the subjects are accounted for in the most recent version of the file
+        % AllAssociatedPRTfilenames.mat (this is taken care of within this
+        % script by the function call on AK_GABAinASD_getAllAssociatedPRTnamesBySetSessionSubject.m)
     % the edf associated with the set have been converted into asc files using the EDF2ASC converter (from SR Research)
 % The quality table produced by the first section of code is a template and
 % needs to be filled in with data quality booleans based on notes taken
@@ -37,6 +39,8 @@
 % isGoodData = 1 only if data is meaningful and well calibrated (according to notes)
 
 %% create tables
+
+addpath(genpath('L:\MurrayLab\ASD\Data'));
 
 % create new table or append to existing one
 newList = true;
@@ -87,12 +91,12 @@ else
     end
 end
 
-% dqSubjects
-dqSubjects = {'G103','G117','G310','G326','G344'};
+% dqSubjects (might need to update this)
+dqSubjects = {'G103','G117','G118','G310','G326','G344'};
 
 % list of confusing logfiles and which index is correct
-confusingLogfiles = {'G101_4*.log','G104_1*.log','G106_1*.log','G107_1*.log','G112_1*.log','G112_19*.log','G307_10*.log','G312_1*.log','G316_1*.log','G322_1*.log','G332_10*.log','G340_15*.log','G345_1*.log'};
-confusingLogfilesIdx = [2 2 1 1 2 2 2 2 2 3 2 2 1];
+confusingLogfiles = {'G101_4*.log','G104_1*.log','G106_1*.log','G107_1*.log','G112_1*.log','G112_19*.log','G123_1*.log','G307_10*.log','G312_1*.log','G316_1*.log','G322_1*.log','G332_10*.log','G340_15*.log','G345_1*.log'};
+confusingLogfilesIdx = [2 2 1 1 2 2 3 2 2 2 3 2 2 1];
 
 % get associated prt filename list for each set for these subjects
 prtList = AK_GABAinASD_getAllAssociatedPRTnamesBySetSessionSubject(subjects,0);
@@ -107,86 +111,95 @@ for iSubj = 1:length(subjects)
         % create prtList for this subject
         clear SubjPRTlist
         SubjPRTlist = prtList((AK_findStrMatch(prtList(:,1),subjects{iSubj}) & AK_findStrMatch(prtList(:,2),sessions{iSess})),:); 
-        % load and sort lists of ascfiles
-        clear asc_list
-        asc_list = dir(fullfile(top_dir,subjects{iSubj},sessions{iSess},'log_files','*.asc')); % create list of ascfiles
-        asc_list = AK_sortStruct(asc_list,1,scanNfindStr); % sort ascfiles by scan number
+        
         % preallocate
         clear setAscLogMatch
-        setAscLogMatch = cell(1);
+        setAscLogMatch = cell(0);
         salmRow =1; % reset counter
-        
-        for iA = 1:length(asc_list) % cycle through ascfiles 
-            % locate strings used to find scan# in asc filename and identify BAD eyetracking, respectively
-            clear scanNindex BADindex
-            scanNindex = strfind(asc_list(iA).name,scanNfindStr);
-            BADindex = strfind(asc_list(iA).name,'BAD');
-            if ~isempty(scanNindex) && isempty(BADindex) % filter asc files by name
-                %find and store scan# as variable scanN
-                clear scanN
-                if ~isnan(str2double(asc_list(iA).name(scanNindex+length(scanNfindStr):scanNindex+length(scanNfindStr)+1))) % check for two digit scan#
-                    scanN = str2double(asc_list(iA).name(scanNindex+length(scanNfindStr):scanNindex+length(scanNfindStr)+1));
-                elseif ~isnan(str2double(asc_list(iA).name(scanNindex+length(scanNfindStr)))) % check for one digit scan#
-                    scanN = str2double(asc_list(iA).name(scanNindex+length(scanNfindStr)));
-                end
-                % find associated logfile name in order to name conditions
-                clear LogfilefindStr log_list logfileName missingLogfiles missingLogfileIndex
-                LogfilefindStr = [scanNfindStr num2str(scanN) '*.log']; % sting to find associated logfile
-                log_list = dir(fullfile(top_dir,subjects{iSubj},sessions{iSess},'log_files',LogfilefindStr)); % create list of logfiles which include LogfilefindStr
-                log_list = AK_sortStruct(log_list,1,scanNfindStr); % sort logfile matches by scan number
-                if length(log_list)>1 % check number of logfiles
-                    if any(strcmp(confusingLogfiles,LogfilefindStr)) % try to avoid asking for user input by using hard-coded table of logfiles which get confused by this script and the approriate indices
-                        selectedLogfileIndex = confusingLogfilesIdx(strcmp(confusingLogfiles,LogfilefindStr));
-                        logfileName = log_list(selectedLogfileIndex).name;
-                    else % otherwise, ask user which logfile to use
-                        disp(['Found multiple logfiles that match ' LogfilefindStr ':']) % message
-                        for iL = 1:length(log_list) % cycle through logfiles
-                            disp([num2str(iL) ': ' log_list(iL).name]) % list logfile names by index number
-                        end
-                        selectedLogfileIndex = input('Enter index (as a double) to select logfile to use from the above list:'); % prompt input for correct logfile
-                        logfileName = log_list(selectedLogfileIndex).name;
+        % only bother trying to match up sets to .asc files to .log files
+        % if the .prt file links hav been generated
+        if ~isempty(SubjPRTlist) && ~all(cellfun(@isempty,SubjPRTlist(:,4)))
+            % load and sort lists of ascfiles
+            clear asc_list
+            asc_list = dir(fullfile(top_dir,subjects{iSubj},sessions{iSess},'log_files','*.asc')); % create list of ascfiles
+            asc_list = AK_sortStruct(asc_list,1,scanNfindStr); % sort ascfiles by scan number
+
+            for iA = 1:length(asc_list) % cycle through ascfiles 
+                % locate strings used to find scan# in asc filename and identify BAD eyetracking, respectively
+                clear scanNindex BADindex
+                scanNindex = strfind(asc_list(iA).name,scanNfindStr);
+                BADindex = strfind(asc_list(iA).name,'BAD');
+                if ~isempty(scanNindex) && isempty(BADindex) % filter asc files by name
+                    %find and store scan# as variable scanN
+                    clear scanN
+                    if ~isnan(str2double(asc_list(iA).name(scanNindex+length(scanNfindStr):scanNindex+length(scanNfindStr)+1))) % check for two digit scan#
+                        scanN = str2double(asc_list(iA).name(scanNindex+length(scanNfindStr):scanNindex+length(scanNfindStr)+1));
+                    elseif ~isnan(str2double(asc_list(iA).name(scanNindex+length(scanNfindStr)))) % check for one digit scan#
+                        scanN = str2double(asc_list(iA).name(scanNindex+length(scanNfindStr)));
                     end
-                elseif length(log_list)==1
-                    logfileName = log_list(1).name;
-                elseif isempty(log_list) % check missing logfile list
-                    disp(['***Checking missing logfile list for associated logfile for ' asc_list(iA).name]) % message
-                    clear missingLogfiles missingLogfileIndex
-                    load('L:\MurrayLab\ASD\Data\missing_logfile_list.mat','missingLogfiles');
-                    missingLogfileIndex = AK_findStrMatch(missingLogfiles,LogfilefindStr); % is the associated logfile name on the list of missing logfiles?
-                    logfileName = missingLogfiles{missingLogfileIndex}; % assign missing logfilename to variable in order to determine which table to add eye tracking data to
-                else
-                    disp(['***Could not find associated logfile for ' asc_list(iA).name]) % message
-                    logfileName = [];
+                    % find associated logfile name in order to name conditions
+                    clear LogfilefindStr log_list logfileName missingLogfiles missingLogfileIndex
+                    LogfilefindStr = [scanNfindStr num2str(scanN) '*.log']; % sting to find associated logfile
+                    log_list = dir(fullfile(top_dir,subjects{iSubj},sessions{iSess},'log_files',LogfilefindStr)); % create list of logfiles which include LogfilefindStr
+                    log_list = AK_sortStruct(log_list,1,scanNfindStr); % sort logfile matches by scan number
+                    if length(log_list)>1 % check number of logfiles
+                        if any(strcmp(confusingLogfiles,LogfilefindStr)) % try to avoid asking for user input by using hard-coded table of logfiles which get confused by this script and the approriate indices
+                            selectedLogfileIndex = confusingLogfilesIdx(strcmp(confusingLogfiles,LogfilefindStr));
+                            logfileName = log_list(selectedLogfileIndex).name;
+                        else % otherwise, ask user which logfile to use
+                            disp(['Found multiple logfiles that match ' LogfilefindStr ':']) % message
+                            for iL = 1:length(log_list) % cycle through logfiles
+                                disp([num2str(iL) ': ' log_list(iL).name]) % list logfile names by index number
+                            end
+                            selectedLogfileIndex = input('Enter index (as a double) to select logfile to use from the above list:'); % prompt input for correct logfile
+                            logfileName = log_list(selectedLogfileIndex).name;
+                        end
+                    elseif length(log_list)==1
+                        logfileName = log_list(1).name;
+                    elseif isempty(log_list) % check missing logfile list
+                        disp(['***Checking missing logfile list for associated logfile for ' asc_list(iA).name]) % message
+                        clear missingLogfiles missingLogfileIndex
+                        load('L:\MurrayLab\ASD\Data\missing_logfile_list.mat','missingLogfiles');
+                        missingLogfileIndex = AK_findStrMatch(missingLogfiles,LogfilefindStr); % is the associated logfile name on the list of missing logfiles?
+                        logfileName = missingLogfiles{missingLogfileIndex}; % assign missing logfilename to variable in order to determine which table to add eye tracking data to
+                    else
+                        disp(['***Could not find associated logfile for ' asc_list(iA).name]) % message
+                        logfileName = [];
+                    end
+                    % use logfile name associated with each ascfile to find the set number in the prtfile name list:
+                    clear scanIDmatchIdx prtListScanIdx setN
+                    if ~isempty(logfileName) && any(cellfun(@(x) any(strfind(logfileName,x)),greencircIDstr)) % for greencirc
+                        % which kind of scan is this logfile for?
+                        scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),greencircIDstr),1);
+                        % what is the associated set#?
+                        prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),greencircIDstr{scanIDmatchIdx},1)); % create index to find set#
+                        setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
+                        SubjPRTlist(prtListScanIdx(1),:) = [];% remove row from SubjPRTlist
+                    elseif ~isempty(logfileName) && any(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:))) % for ftap (logfile and prt file names are different) 
+                        % which kind of scan is this logfile for?
+                        scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:)),1);
+                        = % the above line is not dealing with duplicate run of ftap2 for G127; needs to be more flexible (maybe don't erase from SubjPRTlist as you go)
+                            % should be requesting clarification for
+                            % duplicate logfiles; try changing the test for
+                            % if statement above
+                        % what is the associated set#?
+                        prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),ftapIDstr{2,scanIDmatchIdx},1)); % create index to find set#
+                        setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
+                        SubjPRTlist(prtListScanIdx(1),:) = [];% remove row from SubjPRTlist
+                    else 
+                        setN = [];
+                    end
+                    % store matching information gleaned
+                    setAscLogMatch(salmRow,1) = {['set' num2str(setN)]}; % setN
+                    setAscLogMatch(salmRow,2) = {asc_list(iA).name}; % ascfile name
+                    setAscLogMatch(salmRow,3) = {logfileName}; % logfile name
+                    salmRow = salmRow+1; % advance counter
                 end
-                % use logfile name associated with each ascfile to find the set number in the prtfile name list:
-                clear scanIDmatchIdx prtListScanIdx setN
-                if ~isempty(logfileName) && any(cellfun(@(x) any(strfind(logfileName,x)),greencircIDstr)) % for greencirc
-                    % which kind of scan is this logfile for?
-                    scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),greencircIDstr),1);
-                    % what is the associated set#?
-                    prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),greencircIDstr{scanIDmatchIdx},1)); % create index to find set#
-                    setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
-                    SubjPRTlist(prtListScanIdx(1),:) = [];% remove row from SubjPRTlist
-                elseif ~isempty(logfileName) && any(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:))) % for ftap (logfile and prt file names are different) 
-                    % which kind of scan is this logfile for?
-                    scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:)),1);
-                    % what is the associated set#?
-                    prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),ftapIDstr{2,scanIDmatchIdx},1)); % create index to find set#
-                    setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
-                    SubjPRTlist(prtListScanIdx(1),:) = [];% remove row from SubjPRTlist
-                else 
-                    setN = [];
-                end
-                % store matching information gleaned
-                setAscLogMatch(salmRow,1) = {['set' num2str(setN)]}; % setN
-                setAscLogMatch(salmRow,2) = {asc_list(iA).name}; % ascfile name
-                setAscLogMatch(salmRow,3) = {logfileName}; % logfile name
-                salmRow = salmRow+1; % advance counter
             end
         end
         
         for iSet = 1:length(sets)
-            if ~any(cellfun(@isempty,setAscLogMatch(:,1))) && any(ismember(sets(iSet),setAscLogMatch(:,1))) % only add rows for existing sets; this assumes prtList is complete
+            if ~isempty(setAscLogMatch) && ~any(cellfun(@isempty,setAscLogMatch(:,1))) && any(ismember(sets(iSet),setAscLogMatch(:,1))) % only add rows for existing sets; this assumes prtList is complete
                 % fill in first 3 columns
                 qualityTable(qRow,1) = subjects(iSubj);
                 qualityTable(qRow,2) = sessions(iSess);

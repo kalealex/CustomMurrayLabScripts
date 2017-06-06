@@ -29,6 +29,9 @@ end
 if nargin < 2;
    logfileDirectory = [];
 end
+if ischar(subjectCodeCellStr)
+    subjectCodeCellStr = {subjectCodeCellStr};
+end
 
 
 % establish directory by subjects and fMRI sessions
