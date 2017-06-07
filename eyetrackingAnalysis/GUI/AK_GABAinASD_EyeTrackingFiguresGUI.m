@@ -671,10 +671,10 @@ end
                                 if maxBlocks < dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5}
                                     maxBlocks = dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5};
                                 end
-                                % temporary arrays for data export
-                                tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
-                                tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                             end
+                            % temporary arrays for data export
+                            tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                            tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                         end
                         
                         %%% format data for export (01/26/17):
@@ -713,10 +713,10 @@ end
                             for iLabel = 1:length(groupIdx{thisCondSheetIdx,iGroup})
                                 % mouseover labels
                                 stat(iStat).group(iGroup).labels{iCond}{iLabel} = [dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),1} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),2} ': ' dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),3}];
-                                % temporary arrays for data export
-                                tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
-                                tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                             end
+                            % temporary arrays for data export
+                            tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                            tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                         end
                         
                         %%% format data for export (01/26/17):
@@ -756,10 +756,10 @@ end
                                 if maxBlocks < dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5}
                                     maxBlocks = dataTables{thisCondSheetIdx}{groupIdx{thisCondSheetIdx,iGroup}(iLabel),5};
                                 end
-                                % temporary arrays for data export
-                                tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
-                                tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                             end
+                            % temporary arrays for data export
+                            tempLabels = [tempLabels stat(iStat).group(iGroup).labels{iCond}];
+                            tempData = [tempData; stat(iStat).group(iGroup).values{iCond}];
                         end
                         
                         %%% format data for export (01/26/17):

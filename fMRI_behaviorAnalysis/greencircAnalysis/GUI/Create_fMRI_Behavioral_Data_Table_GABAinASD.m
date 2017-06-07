@@ -126,7 +126,7 @@ for iS = 1:length(data) % cycle through subjects
 
                                 % store appropriate set number and remove corresponding row from SubjPRTlist
                                 clear SubjPRTlistScanIndex
-                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{3},1),'first'); % create index to find set#
+                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{3},1),1); % create index to find set#
                                 V1_fixloc{V1_fixlocRow,3} = ['set' num2str(SubjPRTlist{SubjPRTlistScanIndex,3})]; % store set#
                                 SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
 
@@ -140,7 +140,7 @@ for iS = 1:length(data) % cycle through subjects
                                 if nSets >= nLogfiles 
                                     % if so, remove appropriate row from SubjPRTlist
                                     clear SubjPRTlistScanIndex
-                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{3},1),'first'); % create index to find set#
+                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{3},1),1); % create index to find set#
                                     SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
                                 end    
                             end
@@ -183,7 +183,7 @@ for iS = 1:length(data) % cycle through subjects
 
                                 % store appropriate set number and remove corresponding row from SubjPRTlist
                                 clear SubjPRTlistScanIndex
-                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{2},1),'first'); % create index to find set#
+                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{2},1),1); % create index to find set#
                                 V1loc{V1locRow,3} = ['set' num2str(SubjPRTlist{SubjPRTlistScanIndex,3})]; % store set#
                                 SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
 
@@ -197,7 +197,7 @@ for iS = 1:length(data) % cycle through subjects
                                 if nSets >= nLogfiles 
                                     % if so, remove appropriate row from SubjPRTlist
                                     clear SubjPRTlistScanIndex
-                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{2},1),'first'); % create index to find set#
+                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{2},1),1); % create index to find set#
                                     SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
                                 end        
                             end
@@ -240,7 +240,7 @@ for iS = 1:length(data) % cycle through subjects
 
                                 % store appropriate set number and remove corresponding row from SubjPRTlist
                                 clear SubjPRTlistScanIndex
-                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{1},1),'first'); % create index to find set#
+                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{1},1),1); % create index to find set#
                                 MTloc{MTlocRow,3} = ['set' num2str(SubjPRTlist{SubjPRTlistScanIndex,3})]; % store set#
                                 SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
 
@@ -254,7 +254,7 @@ for iS = 1:length(data) % cycle through subjects
                                 if nSets >= nLogfiles 
                                     % if so, remove appropriate row from SubjPRTlist
                                     clear SubjPRTlistScanIndex
-                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{1},1),'first'); % create index to find set#
+                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{1},1),1); % create index to find set#
                                     SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
                                 end
                             end
@@ -287,7 +287,7 @@ for iS = 1:length(data) % cycle through subjects
 
                                 % store appropriate set number and remove corresponding row from SubjPRTlist
                                 clear SubjPRTlistScanIndex
-                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{4},1),'first'); % create index to find set#
+                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{4},1),1); % create index to find set#
                                 contrast{contrastRow,3} = ['set' num2str(SubjPRTlist{SubjPRTlistScanIndex,3})]; % store next set# of scan type
                                 SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
 
@@ -346,7 +346,7 @@ for iS = 1:length(data) % cycle through subjects
 
                                 % store appropriate set number and remove corresponding row from SubjPRTlist
                                 clear SubjPRTlistScanIndex
-                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{5},1),'first'); % create index to find set#
+                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{5},1),1); % create index to find set#
                                 sup{supRow,3} = ['set' num2str(SubjPRTlist{SubjPRTlistScanIndex,3})]; % store set#
                                 SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
 
@@ -360,7 +360,7 @@ for iS = 1:length(data) % cycle through subjects
                                 if nSets >= nLogfiles 
                                     % if so, remove appropriate row from SubjPRTlist
                                     clear SubjPRTlistScanIndex
-                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{5},1),'first'); % create index to find set#
+                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{5},1),1); % create index to find set#
                                     SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
                                 end
                             end
@@ -403,7 +403,7 @@ for iS = 1:length(data) % cycle through subjects
 
                                 % store appropriate set number and remove corresponding row from SubjPRTlist
                                 clear SubjPRTlistScanIndex
-                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{6},1),'first'); % create index to find set#
+                                SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{6},1),1); % create index to find set#
                                 sum{sumRow,3} = ['set' num2str(SubjPRTlist{SubjPRTlistScanIndex,3})]; % store set#
                                 SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
 
@@ -417,7 +417,7 @@ for iS = 1:length(data) % cycle through subjects
                                 if nSets >= nLogfiles 
                                     % if so, remove appropriate row from SubjPRTlist
                                     clear SubjPRTlistScanIndex
-                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{6},1),'first'); % create index to find set#
+                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{6},1),1); % create index to find set#
                                     SubjPRTlist(SubjPRTlistScanIndex,:) = [];% remove row from SubjPRTlist
                                 end    
                             end
