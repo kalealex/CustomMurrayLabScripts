@@ -48,7 +48,7 @@ elseif nargin < 3
     listFilename = fullfile(top_dir,'AllAssociatedPRTfilenames.mat');
 end
 
-if newListYN==1 % prepare a new list
+if newListYN == 1 % prepare a new list
     % prepare output cell array
     prtList = cell(length(subjects)*length(fMRI_dirs)*length(scan_dirs),4); % preallocate size
     prtList(1,:) = {'subject','session','set#','prtFilename'};
@@ -89,32 +89,35 @@ if ~isempty(subj_dirs) % check to make sure there are subjects who need to be ad
                     if exist(use_dir,'dir')==0 
                         disp([use_dir ' is not an existing directory']) % message
                     else
-                        % create setIDfilename name to look for previously saved prt file name
+                        % create setIDfilename name to look for previously saved .prt file name
                         clear setIDfilename PRTfilename
                         setIDfilename = [fullfile(use_dir,scan_dirs{iScan}) '_scanID.mat'];
 
                         % either load saved filename from mat file or query filename using BVQXfile
                         try 
-                            if exist(setIDfilename,'file')==0; % does the set scanID file exist?
+                            if newListYN == 1 || exist(setIDfilename,'file') == 0; % does the set scanID file exist?
                                 clear vtcfileName vtc 
                                 BVQXfile(0, 'clearallobjects');
                                 vtcfileName = [fullfile(use_dir,scan_dirs{iScan}) '.vtc']; % name vtc files 
-                                vtc = BVQXfile(deblank(vtcfileName)); % fill out vtc structure for purpose of naming scans
+%                                 vtc = BVQXfile(deblank(vtcfileName)); % fill out vtc structure for purpose of naming scans
+                                vtc = BVQXfile(vtcfileName); % test: was deblank syntax the problem?
                                 PRTfilename = vtc.NameOfLinkedPRT;
+                                % test: .prt files should be on the L drive
+                                if isempty(regexp(PRTfilename,'.*L:/.','once'))
+                                    error('bug: bad .prt file link');
+                                end % test
                                 save(setIDfilename,'PRTfilename'); % save associated .prt filename
                             else
                                 load(setIDfilename,'PRTfilename'); % load associated .prt filename
                             end
                         catch
-                            PRTfilename = [];
+                            % store empty string where vtc structure cannot be create
+                            PRTfilename = '';
                             disp(['trouble processing ' vtcfileName]); % message
                         end
-
                         % append filename by set to cell array
                         prtList(prtListRow,:) = {subj_dirs{iS},fMRI_dirs{iF},str2double(scan_dirs{iScan}(4)),PRTfilename};
                         prtListRow = prtListRow+1; % advance counter
-
-
                     end
                 end
             end

@@ -18,6 +18,11 @@
 % needs to be filled in with data quality booleans based on notes taken
 % during scans. Copying and pasting booleans from the previously saved
 % version of the quality table can save a lot of time here.
+
+% NOTE: Where there are multiple .log files for a single set, as is often
+% the case when a Presentation scenario is restarted or rerun (i.e., G127
+% ftap2), the sting "BAD" must be appended to the end of the .log file
+% names. Otherwise, the script will throw an error.
     
 % The SECOND SECTION contains a few lines of code which are meant to assist
 % in manual entry of 0s and 1s in the last two columns of the eyetracking
@@ -95,11 +100,25 @@ end
 dqSubjects = {'G103','G117','G118','G310','G326','G344'};
 
 % list of confusing logfiles and which index is correct
-confusingLogfiles = {'G101_4*.log','G104_1*.log','G106_1*.log','G107_1*.log','G112_1*.log','G112_19*.log','G123_1*.log','G307_10*.log','G312_1*.log','G316_1*.log','G322_1*.log','G332_10*.log','G340_15*.log','G345_1*.log'};
-confusingLogfilesIdx = [2 2 1 1 2 2 3 2 2 2 3 2 2 1];
+confusingLogfilesTable = {'G101_4*.log', 2;...      % add to this table to avoid manual input each time the script gets confused about which version of a logfile to use
+                        'G104_1*.log', 2;...        % often times the right .log file is the complete one (the one with larger file size)
+                        'G106_1*.log', 1;...        % if there is any ambiguity, check the notes .txt file for the subject in question
+                        'G107_1*.log', 1;...
+                        'G112_1*.log', 2;...
+                        'G112_19*.log', 2;...
+                        'G123_1*.log', 3;...
+                        'G307_10*.log', 2;...
+                        'G312_1*.log', 2;...
+                        'G316_1*.log', 2;...
+                        'G322_1*.log', 3;...
+                        'G332_10*.log', 2;...
+                        'G340_15*.log', 2;...
+                        'G345_1*.log', 1};
+confusingLogfiles = confusingLogfilesTable(:,1);
+confusingLogfilesIdx = [confusingLogfilesTable{:,2}];
 
 % get associated prt filename list for each set for these subjects
-prtList = AK_GABAinASD_getAllAssociatedPRTnamesBySetSessionSubject(subjects,0);
+prtList = AK_GABAinASD_getAllAssociatedPRTnamesBySetSessionSubject(subjects, 0); % second argument should be 1 unless you are sure that prtList is up to date
 
 % fill in qualityTable
 for iSubj = 1:length(subjects)
@@ -178,10 +197,6 @@ for iSubj = 1:length(subjects)
                     elseif ~isempty(logfileName) && any(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:))) % for ftap (logfile and prt file names are different) 
                         % which kind of scan is this logfile for?
                         scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:)),1);
-                        = % the above line is not dealing with duplicate run of ftap2 for G127; needs to be more flexible (maybe don't erase from SubjPRTlist as you go)
-                            % should be requesting clarification for
-                            % duplicate logfiles; try changing the test for
-                            % if statement above
                         % what is the associated set#?
                         prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),ftapIDstr{2,scanIDmatchIdx},1)); % create index to find set#
                         setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
@@ -219,12 +234,22 @@ for iSubj = 1:length(subjects)
                     qualityTable(qRow,4) = setAscLogMatch(selectedSALMidx,2); % store ascfile name
                     qualityTable(qRow,5) = setAscLogMatch(selectedSALMidx,3); % store logfile name
                 end
-                % find dir in question
-                clear thisSet_dir
+                % fill in data quality ratings to the extent that it is
+                % possible to automate this part:
+                clear oldQtRowIdx thisSet_dir
+                % find the row in the old qualityTable (qt), if any, which
+                % corresponds to the current row in the current qualityTable
+                oldQtRowIdx = arrayfun(@(x) isequal(qualityTable(2,1:5),qt(x,1:5)), 1:length(qt(:,1)));
+                % find dir in question (if directory doesn't exist, it is
+                % likely that the data in question doesn't either)
                 thisSet_dir = fullfile(top_dir,subjects{iSubj},sessions{iSess},sets{iSet});
-                % mark if there is not data, insofar as the dir doesn't exist;
-                % some of these values will need to be changes manually
-                if exist(thisSet_dir,'dir')==0
+                if any(oldQtRowIdx) && sum(oldQtRowIdx) == 1 % there is one and only one match for this row
+                    % use old quality table to fill in data quality rating
+                    % columns in new quality table
+                    qualityTable(qRow,6:7) = qt(oldQtRowIdx,6:7);
+                elseif exist(thisSet_dir,'dir') == 0 % directory for the current set doesn't exist
+                    % mark if there is not data, insofar as the dir doesn't exist;
+                    % some of these values will need to be changed manually
                     qualityTable{qRow,6} = 0;
                     qualityTable{qRow,7} = 0;
                 end
@@ -232,10 +257,13 @@ for iSubj = 1:length(subjects)
             end
         end
     end
+    
 end
-            
+
+% message to user
 disp('The last two columns must be filled in manually from notes.'); % message
-disp('Values filled in by this section of code reflect the existence of set directories and should be verified with the notes, as set directories only exist for sessions for which fMRI data has been analyzed.'); 
+disp('Values filled in by this section of code reflect data quality rating filled into prior versions of the quality table or the existence of set directories.')
+disp('These values should be verified with the notes, as set directories only exist for sessions for which fMRI data has been analyzed.'); 
 disp('Where set directories do not exist rows must be added to the table and filled in manually.')
 
 %% fill in cells (to make manual entry faster)
