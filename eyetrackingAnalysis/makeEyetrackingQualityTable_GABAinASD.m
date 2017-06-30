@@ -12,7 +12,11 @@
     % the fMRI data has been analyzed in Brain Voyager, resulting in subfolders named set1, set2, set3, etc.
     % the subjects are accounted for in the most recent version of the file
         % AllAssociatedPRTfilenames.mat (this is taken care of within this
-        % script by the function call on AK_GABAinASD_getAllAssociatedPRTnamesBySetSessionSubject.m)
+        % script by the function call on
+        % AK_GABAinASD_getAllAssociatedPRTnamesBySetSessionSubject.m); it
+        % may be the case that empty cells in the cell array prtList need
+        % to be filled in from the notes, otherwise the script will likely
+        % throw an indexing error
     % the edf associated with the set have been converted into asc files using the EDF2ASC converter (from SR Research)
 % The quality table produced by the first section of code is a template and
 % needs to be filled in with data quality booleans based on notes taken
@@ -97,7 +101,7 @@ else
 end
 
 % dqSubjects (might need to update this)
-dqSubjects = {'G103','G117','G118','G310','G326','G344'};
+dqSubjects = {'G103','G117','G118','G134','G310','G326','G344'};
 
 % list of confusing logfiles and which index is correct
 confusingLogfilesTable = {'G101_4*.log', 2;...      % add to this table to avoid manual input each time the script gets confused about which version of a logfile to use
@@ -236,22 +240,14 @@ for iSubj = 1:length(subjects)
                 end
                 % fill in data quality ratings to the extent that it is
                 % possible to automate this part:
-                clear oldQtRowIdx thisSet_dir
+                clear oldQtRowIdx
                 % find the row in the old qualityTable (qt), if any, which
                 % corresponds to the current row in the current qualityTable
-                oldQtRowIdx = arrayfun(@(x) isequal(qualityTable(2,1:5),qt(x,1:5)), 1:length(qt(:,1)));
-                % find dir in question (if directory doesn't exist, it is
-                % likely that the data in question doesn't either)
-                thisSet_dir = fullfile(top_dir,subjects{iSubj},sessions{iSess},sets{iSet});
+                oldQtRowIdx = arrayfun(@(x) isequal(qualityTable(qRow,1:5),qt(x,1:5)), 1:length(qt(:,1)));
                 if any(oldQtRowIdx) && sum(oldQtRowIdx) == 1 % there is one and only one match for this row
                     % use old quality table to fill in data quality rating
                     % columns in new quality table
                     qualityTable(qRow,6:7) = qt(oldQtRowIdx,6:7);
-                elseif exist(thisSet_dir,'dir') == 0 % directory for the current set doesn't exist
-                    % mark if there is not data, insofar as the dir doesn't exist;
-                    % some of these values will need to be changed manually
-                    qualityTable{qRow,6} = 0;
-                    qualityTable{qRow,7} = 0;
                 end
                 qRow = qRow+1; % advance counter 
             end
@@ -262,15 +258,15 @@ end
 
 % message to user
 disp('The last two columns must be filled in manually from notes.'); % message
-disp('Values filled in by this section of code reflect data quality rating filled into prior versions of the quality table or the existence of set directories.')
-disp('These values should be verified with the notes, as set directories only exist for sessions for which fMRI data has been analyzed.'); 
+disp('Values filled in by this section of code reflect data quality rating filled into prior versions of the quality table.')
+disp('The remaining values left blank should be filled in from the notes.'); 
 disp('Where set directories do not exist rows must be added to the table and filled in manually.')
 
 %% fill in cells (to make manual entry faster)
 
-fillRows = 763:774;
-fillColumns = 7;
-fillValue = 0; 
+fillRows = 795:812;
+fillColumns = 6:7;
+fillValue = 1; 
 
 qualityTable(fillRows,fillColumns) = {fillValue};
 
@@ -280,5 +276,9 @@ qualityTable(fillRows,fillColumns) = {fillValue};
 % isGoodData = 1 only if data is meaningful and well calibrated (according to notes)
 
 %% save
+
+% remove empty rows
+emptyRows = find(arrayfun(@(x) all(cellfun(@isempty, qualityTable(x,:))), 1:length(qualityTable(:,1))));
+qualityTable(emptyRows,:) = [];
 
 save(fullfile(top_dir,'EyetrackingQuality.mat'),'dqSubjects','qualityTable');

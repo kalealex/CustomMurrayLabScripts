@@ -8,9 +8,9 @@ function AK_prepareNDARsubmission( submission_dir, NDAR_subinfo_xlsfile )
 %           labeled Subinfo_NDAR for the GABA project (this information is
 %           typically added to REDCap by the Bernier Lab coordinators)
 %   FOLLOW UP:
-%       After running this function, you will need to make a few manual
-%       changes to the .csv files it creates in the designated directory.
-%       Open each file and use the find/replace tool to replace the symbols
+%        After running this function, you will need to make a few manual
+%        changes to the .csv files it creates in the designated directory.
+%        Open each file and use the find/replace tool to replace the symbols
 %        ' and [] with nothing. This will simply remove the Matlab
 %        formatting for strings and empty arrays. Next, for files with bad 
 %        .prt file links, the fields 'experiment_id', 'image_extent4' and 
@@ -18,12 +18,13 @@ function AK_prepareNDARsubmission( submission_dir, NDAR_subinfo_xlsfile )
 %        older subjects (i.e., G102, G105, G307, G311), 
 %        the easiest way to do this is to cut and paste these columns from 
 %        past submissions at the rows that correspond to these specific 
-%        subjects. The validation tool will catch these errors if these 
-%        empty cells are not properly filled. Lastly, you will need to use
-%        the validation tool, available for download online at 
-%       https://ndar.nih.gov/tools_validation_tool.html, to check the 
-%       validity of the submission folder and then upload it to NDAR.
-%       This will complete the submission process.
+%        subjects. Note that .prt file links may have been updated since
+%        the time this documentation was written. The validation tool will
+%        catch these errors if these empty cells are not properly filled.
+%        Lastly, you will need to use the validation tool, available for
+%        download online at https://ndar.nih.gov/tools_validation_tool.html,
+%        to check the validity of the submission folder and then upload it
+%        to NDAR. This will complete the submission process.
 
 
 % check inputs
