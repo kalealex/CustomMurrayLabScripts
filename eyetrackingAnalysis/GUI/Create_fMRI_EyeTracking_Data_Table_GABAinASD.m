@@ -44,40 +44,41 @@ low_columns = {'low: no tracking time','low: fix time','low: drift corrected fix
 high_columns = {'high: no tracking time','high: fix time','high: drift corrected fix time','high: saccade and blink time','high: distance M','high: distance SD','high: angle M','high: angle SD','high: drift corrected distance M','high: drift corrected distance SD','high: drift corrected angle M','high: drift corrected angle SD','high: n saccades','high: n big saccades','high: n blinks','high: saccade amplitude M','high: saccade amplitude SD','high: saccade velocity M','high: saccade velocity SD'};
 predictable_columns = {'predictable: no tracking time','predictable: fix time','predictable: drift corrected fix time','predictable: saccade and blink time','predictable: distance M','predictable: distance SD','predictable: angle M','predictable: angle SD','predictable: drift corrected distance M','predictable: drift corrected distance SD','predictable: drift corrected angle M','predictable: drift corrected angle SD','predictable: n saccades','predictable: n big saccades','predictable: n blinks','predictable: saccade amplitude M','predictable: saccade amplitude SD','predictable: saccade velocity M','predictable: saccade velocity SD'};
 variable_columns = {'variable: no tracking time','variable: fix time','variable: drift corrected fix time','variable: saccade and blink time','variable: distance M','variable: distance SD','variable: angle M','variable: angle SD','variable: drift corrected distance M','variable: drift corrected distance SD','variable: drift corrected angle M','variable: drift corrected angle SD','variable: n saccades','variable: n big saccades','variable: n blinks','variable: saccade amplitude M','variable: saccade amplitude SD','variable: saccade velocity M','variable: saccade velocity SD'};
+all_columns = {'all: no tracking time','all: fix time','all: drift corrected fix time','all: saccade and blink time','all: distance M','all: distance SD','all: angle M','all: angle SD','all: drift corrected distance M','all: drift corrected distance SD','all: drift corrected angle M','all: drift corrected angle SD','all: n saccades','all: n big saccades','all: n blinks','all: saccade amplitude M','all: saccade amplitude SD','all: saccade velocity M','all: saccade velocity SD'};
 
 % create cell arrays to store data and save into spreadsheets
-MTloc = cell(3*length(subjects)+50,length(summary_columns)+length(moving_columns)+length(static_columns)); % 50 rows for buffer
-V1loc = cell(3*length(subjects)+50,length(summary_columns)+length(big_columns)+length(small_columns)); % 50 rows for buffer
-V1_fixloc = cell(3*length(subjects)+50,length(summary_columns)+length(fix_columns)+length(small_columns)); % 50 rows for buffer
-contrast = cell(6*length(subjects)+100,length(summary_columns)+length(fix_columns)+length(low_columns)+length(high_columns)); % 100 rows for buffer
-sup = cell(6*length(subjects)+100,length(summary_columns)+length(small_columns)+length(big_columns)); % 100 rows for buffer; sup and sum have the same condition names but separate cell arrays
-sum = cell(6*length(subjects)+100,length(summary_columns)+length(small_columns)+length(big_columns)); % 100 rows for buffer
-ftap = cell(6*length(subjects)+150,length(summary_columns)+length(fix_columns)+length(predictable_columns)+length(variable_columns)); % 150 rows for buffer
+MTloc = cell(3*length(subjects)+50,length(summary_columns)+length(moving_columns)+length(static_columns)+length(all_columns)); % 50 rows for buffer
+V1loc = cell(3*length(subjects)+50,length(summary_columns)+length(big_columns)+length(small_columns)+length(all_columns)); % 50 rows for buffer
+V1_fixloc = cell(3*length(subjects)+50,length(summary_columns)+length(fix_columns)+length(small_columns)+length(all_columns)); % 50 rows for buffer
+contrast = cell(6*length(subjects)+100,length(summary_columns)+length(fix_columns)+length(low_columns)+length(high_columns)+length(all_columns)); % 100 rows for buffer
+sup = cell(6*length(subjects)+100,length(summary_columns)+length(small_columns)+length(big_columns)+length(all_columns)); % 100 rows for buffer; sup and sum have the same condition names but separate cell arrays
+sum = cell(6*length(subjects)+100,length(summary_columns)+length(small_columns)+length(big_columns)+length(all_columns)); % 100 rows for buffer
+ftap = cell(6*length(subjects)+150,length(summary_columns)+length(fix_columns)+length(predictable_columns)+length(variable_columns)+length(all_columns)); % 150 rows for buffer
 
-bl_MTloc = cell(3*length(subjects)+50,length(block_columns)+length(moving_columns)+length(static_columns)); % 50 rows for buffer
-bl_V1loc = cell(3*length(subjects)+50,length(block_columns)+length(big_columns)+length(small_columns)); % 50 rows for buffer
-bl_V1_fixloc = cell(3*length(subjects)+50,length(block_columns)+length(fix_columns)+length(small_columns)); % 50 rows for buffer
-bl_contrast = cell(6*length(subjects)+100,length(block_columns)+length(fix_columns)+length(low_columns)+length(high_columns)); % 100 rows for buffer
-bl_sup = cell(6*length(subjects)+100,length(block_columns)+length(small_columns)+length(big_columns)); % 100 rows for buffer; sup and sum have the same condition names but separate cell arrays
-bl_sum = cell(6*length(subjects)+100,length(block_columns)+length(small_columns)+length(big_columns)); % 100 rows for buffer
-bl_ftap = cell(6*length(subjects)+150,length(block_columns)+length(fix_columns)+length(predictable_columns)+length(variable_columns)); % 150 rows for buffer
+bl_MTloc = cell(3*length(subjects)+50,length(block_columns)+length(moving_columns)+length(static_columns)+length(all_columns)); % 50 rows for buffer
+bl_V1loc = cell(3*length(subjects)+50,length(block_columns)+length(big_columns)+length(small_columns)+length(all_columns)); % 50 rows for buffer
+bl_V1_fixloc = cell(3*length(subjects)+50,length(block_columns)+length(fix_columns)+length(small_columns)+length(all_columns)); % 50 rows for buffer
+bl_contrast = cell(6*length(subjects)+100,length(block_columns)+length(fix_columns)+length(low_columns)+length(high_columns)+length(all_columns)); % 100 rows for buffer
+bl_sup = cell(6*length(subjects)+100,length(block_columns)+length(small_columns)+length(big_columns)+length(all_columns)); % 100 rows for buffer; sup and sum have the same condition names but separate cell arrays
+bl_sum = cell(6*length(subjects)+100,length(block_columns)+length(small_columns)+length(big_columns)+length(all_columns)); % 100 rows for buffer
+bl_ftap = cell(6*length(subjects)+150,length(block_columns)+length(fix_columns)+length(predictable_columns)+length(variable_columns)+length(all_columns)); % 150 rows for buffer
 
 % add column names to cell arrays
-MTloc(1,:) = [summary_columns,moving_columns,static_columns];
-V1loc(1,:) = [summary_columns,big_columns,small_columns];
-V1_fixloc(1,:) = [summary_columns,fix_columns,small_columns];
-contrast(1,:) = [summary_columns,fix_columns,low_columns,high_columns];
-sup(1,:) = [summary_columns,small_columns,big_columns];
-sum(1,:) = [summary_columns,small_columns,big_columns];
-ftap(1,:) = [summary_columns,fix_columns,predictable_columns,variable_columns];
+MTloc(1,:) = [summary_columns,moving_columns,static_columns,all_columns];
+V1loc(1,:) = [summary_columns,big_columns,small_columns,all_columns];
+V1_fixloc(1,:) = [summary_columns,fix_columns,small_columns,all_columns];
+contrast(1,:) = [summary_columns,fix_columns,low_columns,high_columns,all_columns];
+sup(1,:) = [summary_columns,small_columns,big_columns,all_columns];
+sum(1,:) = [summary_columns,small_columns,big_columns,all_columns];
+ftap(1,:) = [summary_columns,fix_columns,predictable_columns,variable_columns,all_columns];
 
-bl_MTloc(1,:) = [block_columns,moving_columns,static_columns];
-bl_V1loc(1,:) = [block_columns,big_columns,small_columns];
-bl_V1_fixloc(1,:) = [block_columns,fix_columns,small_columns];
-bl_contrast(1,:) = [block_columns,fix_columns,low_columns,high_columns];
-bl_sup(1,:) = [block_columns,small_columns,big_columns];
-bl_sum(1,:) = [block_columns,small_columns,big_columns];
-bl_ftap(1,:) = [block_columns,fix_columns,predictable_columns,variable_columns];
+bl_MTloc(1,:) = [block_columns,moving_columns,static_columns,all_columns];
+bl_V1loc(1,:) = [block_columns,big_columns,small_columns,all_columns];
+bl_V1_fixloc(1,:) = [block_columns,fix_columns,small_columns,all_columns];
+bl_contrast(1,:) = [block_columns,fix_columns,low_columns,high_columns,all_columns];
+bl_sup(1,:) = [block_columns,small_columns,big_columns,all_columns];
+bl_sum(1,:) = [block_columns,small_columns,big_columns,all_columns];
+bl_ftap(1,:) = [block_columns,fix_columns,predictable_columns,variable_columns,all_columns];
 
 % create counters for rows of each cell array
 MTlocRow = 2;
@@ -185,7 +186,27 @@ for iS = 1:length(subjects) % cycle through subjects
                             MTloc(MTlocRow,40) = table2cell(data.summaryStats{iF,iA}('static','SaccadeAmplitudeSD')); % store saccade amplitude SD for static condition
                             MTloc(MTlocRow,41) = table2cell(data.summaryStats{iF,iA}('static','SaccadeVelocityMean')); % store saccade velocity mean for static condition
                             MTloc(MTlocRow,42) = table2cell(data.summaryStats{iF,iA}('static','SaccadeVelocitySD')); % store saccade velocity SD for static condition
-
+                            
+                            MTloc(MTlocRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            MTloc(MTlocRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            MTloc(MTlocRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            MTloc(MTlocRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            MTloc(MTlocRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            MTloc(MTlocRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            MTloc(MTlocRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            MTloc(MTlocRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            MTloc(MTlocRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            MTloc(MTlocRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            MTloc(MTlocRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            MTloc(MTlocRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            MTloc(MTlocRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            MTloc(MTlocRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            MTloc(MTlocRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            MTloc(MTlocRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            MTloc(MTlocRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            MTloc(MTlocRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            MTloc(MTlocRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -294,6 +315,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             V1_fixloc(V1_fixlocRow,41) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocityMean')); % store saccade velocity mean for small condition
                             V1_fixloc(V1_fixlocRow,42) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocitySD')); % store saccade velocity SD for small condition
 
+                            V1_fixloc(V1_fixlocRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            V1_fixloc(V1_fixlocRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            V1_fixloc(V1_fixlocRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            V1_fixloc(V1_fixlocRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            V1_fixloc(V1_fixlocRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            V1_fixloc(V1_fixlocRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            V1_fixloc(V1_fixlocRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            V1_fixloc(V1_fixlocRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            V1_fixloc(V1_fixlocRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            V1_fixloc(V1_fixlocRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            V1_fixloc(V1_fixlocRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            V1_fixloc(V1_fixlocRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            V1_fixloc(V1_fixlocRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            V1_fixloc(V1_fixlocRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            V1_fixloc(V1_fixlocRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            V1_fixloc(V1_fixlocRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            V1_fixloc(V1_fixlocRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            V1_fixloc(V1_fixlocRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            V1_fixloc(V1_fixlocRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -402,6 +443,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             V1loc(V1locRow,41) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocityMean')); % store saccade velocity mean for small condition
                             V1loc(V1locRow,42) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocitySD')); % store saccade velocity SD for small condition
 
+                            V1loc(V1locRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            V1loc(V1locRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            V1loc(V1locRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            V1loc(V1locRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            V1loc(V1locRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            V1loc(V1locRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            V1loc(V1locRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            V1loc(V1locRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            V1loc(V1locRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            V1loc(V1locRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            V1loc(V1locRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            V1loc(V1locRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            V1loc(V1locRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            V1loc(V1locRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            V1loc(V1locRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            V1loc(V1locRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            V1loc(V1locRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            V1loc(V1locRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            V1loc(V1locRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -530,6 +591,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             contrast(contrastRow,60) = table2cell(data.summaryStats{iF,iA}('hi','SaccadeVelocityMean')); % store saccade velocity mean for hi condition
                             contrast(contrastRow,61) = table2cell(data.summaryStats{iF,iA}('hi','SaccadeVelocitySD')); % store saccade velocity SD for hi condition
 
+                            contrast(contrastRow,62) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            contrast(contrastRow,63) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            contrast(contrastRow,64) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            contrast(contrastRow,65) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            contrast(contrastRow,66) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            contrast(contrastRow,67) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            contrast(contrastRow,68) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            contrast(contrastRow,69) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            contrast(contrastRow,70) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            contrast(contrastRow,71) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            contrast(contrastRow,72) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            contrast(contrastRow,73) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            contrast(contrastRow,74) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            contrast(contrastRow,75) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            contrast(contrastRow,76) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            contrast(contrastRow,77) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            contrast(contrastRow,78) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            contrast(contrastRow,79) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            contrast(contrastRow,80) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -658,6 +739,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             sup(supRow,41) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocityMean')); % store saccade velocity mean for big condition
                             sup(supRow,42) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocitySD')); % store saccade velocity SD for big condition
 
+                            sup(supRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            sup(supRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            sup(supRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            sup(supRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            sup(supRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            sup(supRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            sup(supRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            sup(supRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            sup(supRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            sup(supRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            sup(supRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            sup(supRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            sup(supRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            sup(supRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            sup(supRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            sup(supRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            sup(supRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            sup(supRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            sup(supRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -766,6 +867,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             sum(sumRow,41) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocityMean')); % store saccade velocity mean for big condition
                             sum(sumRow,42) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocitySD')); % store saccade velocity SD for big condition
 
+                            sum(sumRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            sum(sumRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            sum(sumRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            sum(sumRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            sum(sumRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            sum(sumRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            sum(sumRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            sum(sumRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            sum(sumRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            sum(sumRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            sum(sumRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            sum(sumRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            sum(sumRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            sum(sumRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            sum(sumRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            sum(sumRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            sum(sumRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            sum(sumRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            sum(sumRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -894,6 +1015,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             ftap(ftapRow,60) = table2cell(data.summaryStats{iF,iA}('variable','SaccadeVelocityMean')); % store saccade velocity mean for variable condition
                             ftap(ftapRow,61) = table2cell(data.summaryStats{iF,iA}('variable','SaccadeVelocitySD')); % store saccade velocity SD for variable condition
 
+                            ftap(ftapRow,62) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            ftap(ftapRow,63) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            ftap(ftapRow,64) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            ftap(ftapRow,65) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            ftap(ftapRow,66) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            ftap(ftapRow,67) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            ftap(ftapRow,68) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            ftap(ftapRow,69) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            ftap(ftapRow,70) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            ftap(ftapRow,71) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            ftap(ftapRow,72) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            ftap(ftapRow,73) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            ftap(ftapRow,74) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            ftap(ftapRow,75) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            ftap(ftapRow,76) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            ftap(ftapRow,77) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            ftap(ftapRow,78) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            ftap(ftapRow,79) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            ftap(ftapRow,80) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1024,6 +1165,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             MTloc(MTlocRow,41) = table2cell(data.summaryStats{iF,iA}('static','SaccadeVelocityMean')); % store saccade velocity mean for static condition
                             MTloc(MTlocRow,42) = table2cell(data.summaryStats{iF,iA}('static','SaccadeVelocitySD')); % store saccade velocity SD for static condition
 
+                            MTloc(MTlocRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            MTloc(MTlocRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            MTloc(MTlocRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            MTloc(MTlocRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            MTloc(MTlocRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            MTloc(MTlocRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            MTloc(MTlocRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            MTloc(MTlocRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            MTloc(MTlocRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            MTloc(MTlocRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            MTloc(MTlocRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            MTloc(MTlocRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            MTloc(MTlocRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            MTloc(MTlocRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            MTloc(MTlocRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            MTloc(MTlocRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            MTloc(MTlocRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            MTloc(MTlocRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            MTloc(MTlocRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1132,6 +1293,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             V1_fixloc(V1_fixlocRow,41) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocityMean')); % store saccade velocity mean for small condition
                             V1_fixloc(V1_fixlocRow,42) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocitySD')); % store saccade velocity SD for small condition
 
+                            V1_fixloc(V1_fixlocRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            V1_fixloc(V1_fixlocRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            V1_fixloc(V1_fixlocRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            V1_fixloc(V1_fixlocRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            V1_fixloc(V1_fixlocRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            V1_fixloc(V1_fixlocRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            V1_fixloc(V1_fixlocRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            V1_fixloc(V1_fixlocRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            V1_fixloc(V1_fixlocRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            V1_fixloc(V1_fixlocRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            V1_fixloc(V1_fixlocRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            V1_fixloc(V1_fixlocRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            V1_fixloc(V1_fixlocRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            V1_fixloc(V1_fixlocRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            V1_fixloc(V1_fixlocRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            V1_fixloc(V1_fixlocRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            V1_fixloc(V1_fixlocRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            V1_fixloc(V1_fixlocRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            V1_fixloc(V1_fixlocRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1240,6 +1421,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             V1loc(V1locRow,41) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocityMean')); % store saccade velocity mean for small condition
                             V1loc(V1locRow,42) = table2cell(data.summaryStats{iF,iA}('tar','SaccadeVelocitySD')); % store saccade velocity SD for small condition
 
+                            V1loc(V1locRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            V1loc(V1locRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            V1loc(V1locRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            V1loc(V1locRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            V1loc(V1locRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            V1loc(V1locRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            V1loc(V1locRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            V1loc(V1locRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            V1loc(V1locRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            V1loc(V1locRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            V1loc(V1locRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            V1loc(V1locRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            V1loc(V1locRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            V1loc(V1locRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            V1loc(V1locRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            V1loc(V1locRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            V1loc(V1locRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            V1loc(V1locRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            V1loc(V1locRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1368,6 +1569,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             contrast(contrastRow,60) = table2cell(data.summaryStats{iF,iA}('hi','SaccadeVelocityMean')); % store saccade velocity mean for hi condition
                             contrast(contrastRow,61) = table2cell(data.summaryStats{iF,iA}('hi','SaccadeVelocitySD')); % store saccade velocity SD for hi condition
 
+                            contrast(contrastRow,62) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            contrast(contrastRow,63) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            contrast(contrastRow,64) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            contrast(contrastRow,65) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            contrast(contrastRow,66) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            contrast(contrastRow,67) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            contrast(contrastRow,68) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            contrast(contrastRow,69) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            contrast(contrastRow,70) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            contrast(contrastRow,71) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            contrast(contrastRow,72) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            contrast(contrastRow,73) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            contrast(contrastRow,74) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            contrast(contrastRow,75) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            contrast(contrastRow,76) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            contrast(contrastRow,77) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            contrast(contrastRow,78) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            contrast(contrastRow,79) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            contrast(contrastRow,80) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1495,6 +1716,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             sup(supRow,41) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocityMean')); % store saccade velocity mean for big condition
                             sup(supRow,42) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocitySD')); % store saccade velocity SD for big condition
 
+                            sup(supRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            sup(supRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            sup(supRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            sup(supRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            sup(supRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            sup(supRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            sup(supRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            sup(supRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            sup(supRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            sup(supRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            sup(supRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            sup(supRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            sup(supRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            sup(supRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            sup(supRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            sup(supRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            sup(supRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            sup(supRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            sup(supRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1603,6 +1844,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             sum(sumRow,41) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocityMean')); % store saccade velocity mean for big condition
                             sum(sumRow,42) = table2cell(data.summaryStats{iF,iA}('big','SaccadeVelocitySD')); % store saccade velocity SD for big condition
 
+                            sum(sumRow,43) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            sum(sumRow,44) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            sum(sumRow,45) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            sum(sumRow,46) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            sum(sumRow,47) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            sum(sumRow,48) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            sum(sumRow,49) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            sum(sumRow,50) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            sum(sumRow,51) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            sum(sumRow,52) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            sum(sumRow,53) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            sum(sumRow,54) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            sum(sumRow,55) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            sum(sumRow,56) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            sum(sumRow,57) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            sum(sumRow,58) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            sum(sumRow,59) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            sum(sumRow,60) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            sum(sumRow,61) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})
@@ -1731,6 +1992,26 @@ for iS = 1:length(subjects) % cycle through subjects
                             ftap(ftapRow,60) = table2cell(data.summaryStats{iF,iA}('variable','SaccadeVelocityMean')); % store saccade velocity mean for variable condition
                             ftap(ftapRow,61) = table2cell(data.summaryStats{iF,iA}('variable','SaccadeVelocitySD')); % store saccade velocity SD for variable condition
 
+                            ftap(ftapRow,62) = table2cell(data.summaryStats{iF,iA}('all','noTrackTime')); % store no tracking time for all conditions
+                            ftap(ftapRow,63) = table2cell(data.summaryStats{iF,iA}('all','fixationTime')); % store fixation time for all conditions
+                            ftap(ftapRow,64) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedFixationTime')); % store drift-corrected fixation time for all conditions
+                            ftap(ftapRow,65) = table2cell(data.summaryStats{iF,iA}('all','saccadeTime')); % store saccade and blink time for all conditions
+                            ftap(ftapRow,66) = table2cell(data.summaryStats{iF,iA}('all','distanceMean')); % store distance M for all conditions
+                            ftap(ftapRow,67) = table2cell(data.summaryStats{iF,iA}('all','distanceSD')); % store distance SD for all conditions
+                            ftap(ftapRow,68) = table2cell(data.summaryStats{iF,iA}('all','angleMean')); % store angle M for all conditions
+                            ftap(ftapRow,69) = table2cell(data.summaryStats{iF,iA}('all','angleSD')); % store angle SD for all conditions
+                            ftap(ftapRow,70) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceMean')); % store drift-corrected distance M for all conditions
+                            ftap(ftapRow,71) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedDistanceSD')); % store drift-corrected distance SD for all conditions
+                            ftap(ftapRow,72) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleMean')); % store drift-corrected angle M for all conditions
+                            ftap(ftapRow,73) = table2cell(data.summaryStats{iF,iA}('all','driftCorrectedAngleSD')); % store drift-corrected angle SD for all conditions
+                            ftap(ftapRow,74) = table2cell(data.summaryStats{iF,iA}('all','SaccadeN')); % store number of saccades for all conditions
+                            ftap(ftapRow,75) = table2cell(data.summaryStats{iF,iA}('all','bigSaccadeN')); % store number of big saccades for all conditions
+                            ftap(ftapRow,76) = table2cell(data.summaryStats{iF,iA}('all','BlinkN')); % store number of saccades for all conditions
+                            ftap(ftapRow,77) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeMean')); % store saccade amplitude mean for all conditions
+                            ftap(ftapRow,78) = table2cell(data.summaryStats{iF,iA}('all','SaccadeAmplitudeSD')); % store saccade amplitude SD for all conditions
+                            ftap(ftapRow,79) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocityMean')); % store saccade velocity mean for all conditions
+                            ftap(ftapRow,80) = table2cell(data.summaryStats{iF,iA}('all','SaccadeVelocitySD')); % store saccade velocity SD for all conditions
+                            
                             % block stats:                        
                             % cycle through block number filling in cell array 
                             for iB = 1:max(data.conditionBlockCount{iF,iA})

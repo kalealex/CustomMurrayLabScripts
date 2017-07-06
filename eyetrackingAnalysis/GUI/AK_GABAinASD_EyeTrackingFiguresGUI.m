@@ -574,7 +574,7 @@ end
             else
                 % don't index by groups, but maintain similar data indexing
                 groupIdx{iSheet,1} = 2:length(dataTables{iSheet}(:,1)); % group1 == all subjects; exclude first row of column labels from index
-                groupLabels{iSheet} = {'All'}; % to use in x-axis labels
+                groupLabels{iSheet} = {'All Subjects'}; % to use in x-axis labels
             end
             % use only subjects currently selected
             if ~all(cellfun(@isempty,subjectsCurrent))
