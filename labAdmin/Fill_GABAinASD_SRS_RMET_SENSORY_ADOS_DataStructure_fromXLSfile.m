@@ -20,4 +20,4 @@ symptom_scores.ADOS_restricted_repetative_behavior = cell2mat(data(4:end,9));
 symptom_scores.ADOS_total = cell2mat(data(4:end,10));
 
 % save
-save(['L:\MurrayLab\ASD\Data\Analysis_scripts\GABAinASD_SymptomScores' datestr(now,'yyyymmdd') '.mat'],'symptom_scores');
+% save(['L:\MurrayLab\ASD\Data\Analysis_scripts\GABAinASD_SymptomScores' datestr(now,'yyyymmdd') '.mat'],'symptom_scores');
