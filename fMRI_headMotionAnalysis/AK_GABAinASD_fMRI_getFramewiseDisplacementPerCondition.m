@@ -1,4 +1,4 @@
-function [ set, FDrms, FDsd, FDmax ] = AK_GABAinASD_fMRI_getFramewiseDisplacementPerCondition( subject, fMRIsession, root_dir )
+function [ set, FDrms, FDsd, FDmax ] = AK_GABAinASD_fMRI_getFramewiseDisplacementPerCondition( subject, fMRIsession, plotBoolean, root_dir )
 %AK_GABAinASD_fMRI_getFramewiseDisplacementPerCondition accepts a subject
 %code and fMRI session from the GABAinASD study as input and returns
 %summary statistics on head motion for each set of functional data. The
@@ -12,6 +12,9 @@ function [ set, FDrms, FDsd, FDmax ] = AK_GABAinASD_fMRI_getFramewiseDisplacemen
 %       fMRIsession: an fMRI sessionn name from the GABAinASD study (string); 
 %           either 'fMRI1', 'fMRI2' or 'ftap' (a list of sets checked
 %           against the existing directory structure)
+%       plotBoolean[optional]: given argument determines whether or not
+%           head motion data is plotted; true => plots, false => no plots;
+%           defaults to false
 %       root_dir[optional]: the root directory containing the subject
 %           folders from the GABAinASD study; should always be the
 %           default value 'L:\MurrayLab\ASD\Data', so no need for this
@@ -31,6 +34,12 @@ function [ set, FDrms, FDsd, FDmax ] = AK_GABAinASD_fMRI_getFramewiseDisplacemen
 %               mm (Power et al. 2012); the length the array is equal to
 %               the number of TRs in the scan, and the first FD in the list
 %               will always be zero
+%           MC: a matrix of motion corrections (mm) for this set in which
+%               rows represent TRs and columns represent translations in
+%               the x, y, z dimensions followed by ratations in the x, y, z
+%               dimensions; the distance of rotational displacements are
+%               estimated by converting degrees to radians to mm on a 50 mm
+%               sphere
 %           experiment: a string identifying the fMRI experiment which was
 %               run during a given set; selected from the list:
 %               'MTlocalizer' ,'contrast', 'suppression', 'summation',
@@ -70,6 +79,9 @@ if nargin < 2
     error('AK_GABAinASD_getMotionCorrection requires at least two inputs: subject code and fMRI session name (both as strings)') % error message
 end
 if nargin < 3
+    plotBoolean = false; % default to not plotting FD and MC measures
+end
+if nargin < 4
     root_dir = 'L:\MurrayLab\ASD\Data';
 end
 
@@ -140,6 +152,10 @@ FDrms = nan(length(set_dirs),1);
 FDsd = nan(length(set_dirs),1);
 FDmax = nan(length(set_dirs),1);
 
+% plot markings and legend
+plotMarkingsMC = {'r-','g-','b-','m-','y-','c-'};
+legendKey = {'x translation','y translation','z translation','x rotation','y rotation','z rotation','FD'};
+
 for iS = 1:length(set_dirs)
     clear thisSetDir
     thisSetDir = fullfile(home_dir,set_dirs{iS});
@@ -155,15 +171,26 @@ for iS = 1:length(set_dirs)
             % reset dir
             chdir(home_dir)
 
-            % assign MC to tempory array
-            clear temp
-            temp = MC{iS}; 
-            % convert degrees to radians to mm on a 50 mm circle
-            temp(:,4:6) = ((temp(:,4:6).*pi)./180).*50;
+            % convert degrees to radians to mm on a 50 mm sphere
+            MC{iS}(:,4:6) = ((MC{iS}(:,4:6).*pi)./180).*50;
             % difference between timepoint i and timepoint i-1
-            FD{iS} = abs(temp(2:size(temp,1),:) - temp(1:size(temp,1)-1,:));
+            FD{iS} = abs(MC{iS}(2:size(MC{iS},1),:) - MC{iS}(1:size(MC{iS},1)-1,:));
             % sum across all motion parameters
             FD{iS} = [0; sum(FD{iS},2)]; % add displacement of zero at the first index
+            
+            if plotBoolean
+                % plot FD and MC parameter timecourse
+                figure(iS); hold on;
+                for iMC = 1:6
+                    plot(1:length(MC{iS}(:,iMC)),MC{iS}(:,iMC) - MC{iS}(1,iMC),plotMarkingsMC{iMC}) % plot MCs for each TR minus the position at the first TR
+                end
+                plot(1:length(FD{iS}),FD{iS},'k-','LineWidth',1.5)
+                % labels
+                title(['Head Motion for ' subject ': ' fMRIsession ': ' set_dirs{iS}]);
+                xlabel('Time (2 second TRs)');
+                ylabel('Motion (mm)');
+                legend(gca,'String',legendKey);
+            end
             
             % select indices to separate framewise displacements by
             % condition based on associated .prt file name
@@ -182,6 +209,7 @@ for iS = 1:length(set_dirs)
                 set(iS).directory = thisSetDir;
                 set(iS).experiment = experimentIDs{thisSetExperimentIdx};
                 set(iS).FD = FD{iS};
+                set(iS).MC = MC{iS};
                 set(iS).conditionIdx = condIdx;
                 set(iS).conditionList = experimentConds;
             else % no .prt file name for this set
@@ -191,6 +219,7 @@ for iS = 1:length(set_dirs)
                 set(iS).directory = thisSetDir;
                 set(iS).experiment = 'cannot identify experiment because of missing .prt file link';
                 set(iS).FD = FD{iS};
+                set(iS).MC = MC{iS};
                 set(iS).conditionIdx = nan;
                 set(iS).conditionList = 'cannot identify condition set because of missing .prt file link';
             end
