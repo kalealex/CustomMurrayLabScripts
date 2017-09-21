@@ -5,7 +5,7 @@
 % 02/17/17
 
 % switch: create table for good quality data only?
-onlyGood = 0;
+onlyGood = 1;
 
 %% designate directory, subject, and logfile indentifying information
 

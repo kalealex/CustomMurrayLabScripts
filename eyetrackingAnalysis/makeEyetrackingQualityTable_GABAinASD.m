@@ -111,13 +111,17 @@ confusingLogfilesTable = {'G101_4*.log', 2;...      % add to this table to avoid
                         'G112_1*.log', 2;...
                         'G112_19*.log', 2;...
                         'G123_1*.log', 3;...
+                        'G123_2*.log', 2;...
+                        'G123_8*.log', 3;...
                         'G307_10*.log', 2;...
                         'G312_1*.log', 2;...
                         'G316_1*.log', 2;...
                         'G322_1*.log', 3;...
                         'G332_10*.log', 2;...
                         'G340_15*.log', 2;...
-                        'G345_1*.log', 1};
+                        'G345_1*.log', 1;...
+                        'G348_10*.log', 2;...
+                        'G348_2*.log', 2};
 confusingLogfiles = confusingLogfilesTable(:,1);
 confusingLogfilesIdx = [confusingLogfilesTable{:,2}];
 
@@ -192,9 +196,19 @@ for iSubj = 1:length(subjects)
                     % use logfile name associated with each ascfile to find the set number in the prtfile name list:
                     clear scanIDmatchIdx prtListScanIdx setN
                     if ~isempty(logfileName) && any(cellfun(@(x) any(strfind(logfileName,x)),greencircIDstr)) % for greencirc
+                        
                         % which kind of scan is this logfile for?
                         scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),greencircIDstr),1);
                         % what is the associated set#?
+                        % THIS SECTION OF CODE ASSUMES THAT EACH TYPE OF
+                        % SCAN WAS RUN A CORRECT NUMBER OF TIMES; IF THIS
+                        % IS NOT THE CASE, IT IS LIKELY THAT THE fMRI
+                        % ANALYSIS HAS INCORRECTLY ASSIGNED A .PRT FILE
+                        % (RESULTING IN A BIG IN THIS CODE); TO AVOID THIS,
+                        % WRITE THE MATCHING .PRT FILE NAME FOR THE .LOG
+                        % FILE INTO 'prtList' FOR NOW AND RERUN THE fMRI
+                        % ANALYSIS WITH THE CORRECT LINK BETWEEN THE .VTC
+                        % AND THE .PRT FILES
                         prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),greencircIDstr{scanIDmatchIdx},1)); % create index to find set#
                         setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
                         SubjPRTlist(prtListScanIdx(1),:) = [];% remove row from SubjPRTlist
@@ -202,6 +216,15 @@ for iSubj = 1:length(subjects)
                         % which kind of scan is this logfile for?
                         scanIDmatchIdx = find(cellfun(@(x) any(strfind(logfileName,x)),ftapIDstr(1,:)),1);
                         % what is the associated set#?
+                        % THIS SECTION OF CODE ASSUMES THAT EACH TYPE OF
+                        % SCAN WAS RUN A CORRECT NUMBER OF TIMES; IF THIS
+                        % IS NOT THE CASE, IT IS LIKELY THAT THE fMRI
+                        % ANALYSIS HAS INCORRECTLY ASSIGNED A .PRT FILE
+                        % (RESULTING IN A BIG IN THIS CODE); TO AVOID THIS,
+                        % WRITE THE MATCHING .PRT FILE NAME FOR THE .LOG
+                        % FILE INTO 'prtList' FOR NOW AND RERUN THE fMRI
+                        % ANALYSIS WITH THE CORRECT LINK BETWEEN THE .VTC
+                        % AND THE .PRT FILES
                         prtListScanIdx = find(AK_findStrMatch(SubjPRTlist(:,4),ftapIDstr{2,scanIDmatchIdx},1)); % create index to find set#
                         setN = SubjPRTlist{prtListScanIdx,3}; % store set# as variable
                         SubjPRTlist(prtListScanIdx(1),:) = [];% remove row from SubjPRTlist
@@ -264,9 +287,9 @@ disp('Where set directories do not exist rows must be added to the table and fil
 
 %% fill in cells (to make manual entry faster)
 
-fillRows = 795:812;
+fillRows = 939:947;
 fillColumns = 6:7;
-fillValue = 1; 
+fillValue = 1;
 
 qualityTable(fillRows,fillColumns) = {fillValue};
 
