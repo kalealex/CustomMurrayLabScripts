@@ -296,14 +296,14 @@ for iS = 1:length(data) % cycle through subjects
                             elseif ~isempty(scanNindex) && data(iS).pulseCount(iF,iL)<125 % can find scanNindex, but too few pulses
                                 % find and comare the number of remaining sets and logfiles of the appropriate type
                                 clear nSets nLogfiles
-                                nSets = length(find(AK_findStrMatch(SubjPRTlist(:,4),contrastStr{1},1)));
-                                nLogfiles = length(find(AK_findStrMatch(data(iS).logFile(iF,iL:find(~cellfun(@isempty,data(iS).logFile(iF,:)),1,'last')),contrastStr{1})));
+                                nSets = length(find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{4},1)));
+                                nLogfiles = length(find(AK_findStrMatch(data(iS).logFile(iF,iL:find(~cellfun(@isempty,data(iS).logFile(iF,:)),1,'last')),experimentStr{4})));
 
                                 % determine whether or not the current set of this type needs to be removed from the list
                                 if nSets>=nLogfiles 
                                     % if so, remove appropriate row from SubjPRTlist
                                     clear SubjPRTlistScanIndex
-                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),contrastStr{1},1)); % create index to find set#
+                                    SubjPRTlistScanIndex = find(AK_findStrMatch(SubjPRTlist(:,4),experimentStr{4},1)); % create index to find set#
                                     SubjPRTlist(SubjPRTlistScanIndex(1),:) = [];% remove row from SubjPRTlist
                                 end       
                             end
